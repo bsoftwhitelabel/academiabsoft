@@ -1,0 +1,570 @@
+// Academia Digital — Prisma Schema
+// Multi-tenant SaaS for DGERT-certified training management
+// 14 core models supporting white-label catalog, attendance, signatures, documents
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  OWNER       // platform operator
+  ADMIN       // tenant administrator
+  TRAINER     // formador
+  TRAINEE     // formando
+  CLIENT_HR   // RH from client company (read-only their own data)
+}
+
+enum CourseModality {
+  PRESENCIAL
+  ELEARNING
+  BLENDED
+}
+
+enum CourseStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum TrainingActionStatus {
+  DRAFT
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+  CANCELLED
+}
+
+enum SessionStatus {
+  UPCOMING
+  OPEN_CHECKIN
+  IN_PROGRESS
+  CLOSED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PENDING
+  CHECKED_IN        // self check-in by trainee
+  PRESENT           // trainer-confirmed presence
+  EARLY_LEAVE
+  ABSENT
+  MANUAL_PRESENT    // marked by trainer (no self check-in)
+}
+
+enum SignatureState {
+  NOT_ENABLED       // trainer hasn't enabled signing yet
+  ENABLED           // trainee can sign now
+  SIGNED            // trainee signed
+  INVALIDATED       // trainer cancelled
+}
+
+enum DocumentType {
+  FICHA_INSCRICAO
+  FOLHA_PRESENCAS
+  REGISTO_OCORRENCIAS
+  RECURSOS_DIDATICOS
+  QUESTIONARIO_AVALIACAO
+  CERTIFICADO
+  ATA_REUNIAO_PEDAGOGICA
+  CONTRATO_FORMANDO
+  CONTRATO_FORMADOR
+  PROGRAMA_FORMACAO
+  PLANO_SESSAO
+  RELATORIO_FINAL
+}
+
+enum CertificationLevel {
+  PARTICIPACAO
+  APROVEITAMENTO
+  COMPETENCIAS
+}
+
+// ============================================================================
+// 1. TENANT — multi-tenancy root
+// ============================================================================
+
+model Tenant {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  domain       String?  @unique
+  name         String
+
+  logoUrl      String?
+  primaryColor String?
+  accentColor  String?
+
+  dgertCode    String?
+  settings     Json?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users           User[]
+  entities        Entity[]
+  courses         Course[]
+  trainingActions TrainingAction[]
+  trainers        Trainer[]
+  trainees        Trainee[]
+  trainingAreas   TrainingArea[]
+}
+
+// ============================================================================
+// 2. USER — auth + base profile
+// ============================================================================
+
+model User {
+  id              String    @id @default(cuid())
+  tenantId        String
+  email           String
+  emailVerifiedAt DateTime?
+
+  fullName        String
+  preferredName   String?
+  avatarUrl       String?
+  phone           String?
+
+  role            UserRole
+
+  passwordHash    String?
+  isActive        Boolean   @default(true)
+  lastLoginAt     DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trainerProfile  Trainer?
+  traineeProfile  Trainee?
+  signatures      Signature[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId, role])
+}
+
+// ============================================================================
+// 3. TRAINER (formador) — extends User
+// ============================================================================
+
+model Trainer {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  tenantId           String
+
+  ccpNumber          String?
+  ccpExpiresAt       DateTime?
+
+  documentType       String?
+  documentNumber     String?
+  taxId              String?
+  birthDate          DateTime?
+  nationality        String?
+
+  yearsPresentialExp Int?
+  yearsDistanceExp   Int?
+
+  isExternal         Boolean   @default(false)
+  isElearning        Boolean   @default(false)
+  bio                String?   @db.Text
+
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trainingActions    TrainingActionTrainer[]
+
+  @@index([tenantId])
+}
+
+// ============================================================================
+// 4. TRAINEE (formando) — extends User
+// ============================================================================
+
+model Trainee {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  tenantId         String
+  entityId         String?
+
+  documentType     String?
+  documentNumber   String?
+  taxId            String?
+  birthDate        DateTime?
+
+  address          String?
+  city             String?
+  postalCode       String?
+  country          String?    @default("Portugal")
+
+  employmentStatus String?
+  profession       String?
+  qualification    String?
+
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant           Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  entity           Entity?    @relation(fields: [entityId], references: [id], onDelete: SetNull)
+  enrollments      Enrollment[]
+  attendances      Attendance[]
+  certificates     Certificate[]
+
+  @@index([tenantId])
+  @@index([entityId])
+}
+
+// ============================================================================
+// 5. ENTITY — client company (B2B)
+// ============================================================================
+
+model Entity {
+  id           String   @id @default(cuid())
+  tenantId     String
+
+  name         String
+  code         String?
+  taxId        String?
+  cae          String?
+
+  address      String?
+  city         String?
+  postalCode   String?
+  country      String?  @default("Portugal")
+
+  // logo for white-label PDFs (top-left of generated documents)
+  logoUrl      String?
+
+  contactEmail String?
+  contactPhone String?
+
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trainees        Trainee[]
+  trainingActions TrainingAction[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+// ============================================================================
+// 6. TRAINING AREA — DGERT/CITE classification
+// ============================================================================
+
+model TrainingArea {
+  id          String   @id @default(cuid())
+  tenantId    String
+
+  code        String
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  courses     Course[]
+
+  @@unique([tenantId, code])
+}
+
+// ============================================================================
+// 7. COURSE — catalog item
+// ============================================================================
+
+model Course {
+  id                   String   @id @default(cuid())
+  tenantId             String
+  trainingAreaId       String?
+
+  code                 String
+  slug                 String
+  name                 String
+  shortName            String?
+
+  description          String?  @db.Text
+  destinatarios        String?  @db.Text
+  preRequisitos        String?  @db.Text
+  objetivosGerais      String?  @db.Text
+  objetivosEspecificos String?  @db.Text
+  metodologia          String?  @db.Text
+  metodologiaAvaliacao String?  @db.Text
+
+  durationHours        Int
+  modality             CourseModality
+
+  status               CourseStatus @default(ACTIVE)
+  isFeatured           Boolean      @default(false)
+  isPublic             Boolean      @default(false)
+
+  coverImageUrl        String?
+  marketingDescription String?  @db.Text
+  tagsRaw              String?
+  priceEur             Decimal? @db.Decimal(10, 2)
+  certificationLevel   CertificationLevel @default(PARTICIPACAO)
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  trainingArea    TrainingArea?  @relation(fields: [trainingAreaId], references: [id], onDelete: SetNull)
+  modules         CourseModule[]
+  trainingActions TrainingAction[]
+
+  @@unique([tenantId, slug])
+  @@unique([tenantId, code])
+  @@index([tenantId, status, isPublic])
+  @@index([tenantId, isFeatured])
+}
+
+// ============================================================================
+// 8. COURSE MODULE — curriculum unit
+// ============================================================================
+
+model CourseModule {
+  id            String   @id @default(cuid())
+  courseId      String
+
+  order         Int
+  name          String
+  description   String?  @db.Text
+  durationHours Int
+
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, order])
+}
+
+// ============================================================================
+// 9. TRAINING ACTION (turma) — specific edition of a course
+// ============================================================================
+
+model TrainingAction {
+  id            String   @id @default(cuid())
+  tenantId      String
+  courseId      String
+  entityId      String?
+
+  code          String
+  name          String?
+
+  startDate     DateTime
+  endDate       DateTime
+  durationHours Int
+
+  modality      CourseModality
+  location      String?
+  room          String?
+
+  status        TrainingActionStatus @default(SCHEDULED)
+  maxTrainees   Int?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  entity        Entity?  @relation(fields: [entityId], references: [id], onDelete: SetNull)
+  trainers      TrainingActionTrainer[]
+  enrollments   Enrollment[]
+  sessions      Session[]
+  documents     Document[]
+  certificates  Certificate[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId, status])
+  @@index([entityId])
+}
+
+// ============================================================================
+// 10. TRAINING ACTION TRAINER — many-to-many trainers in turma
+// ============================================================================
+
+model TrainingActionTrainer {
+  trainingActionId String
+  trainerId        String
+  isPrimary        Boolean        @default(false)
+
+  trainingAction   TrainingAction @relation(fields: [trainingActionId], references: [id], onDelete: Cascade)
+  trainer          Trainer        @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+
+  @@id([trainingActionId, trainerId])
+}
+
+// ============================================================================
+// 11. ENROLLMENT — trainee in turma + magic-link access
+// ============================================================================
+
+model Enrollment {
+  id                 String   @id @default(cuid())
+  trainingActionId   String
+  traineeId          String
+
+  enrolledAt         DateTime @default(now())
+
+  // unique magic-link token (no login flow needed)
+  accessToken        String   @unique @default(cuid())
+
+  totalHoursAttended Int      @default(0)
+  attendanceRate     Float    @default(0)
+  status             String   @default("ACTIVE")
+
+  trainingAction     TrainingAction @relation(fields: [trainingActionId], references: [id], onDelete: Cascade)
+  trainee            Trainee  @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  attendances        Attendance[]
+
+  @@unique([trainingActionId, traineeId])
+  @@index([traineeId])
+}
+
+// ============================================================================
+// 12. SESSION — individual class within a turma
+// ============================================================================
+
+model Session {
+  id               String   @id @default(cuid())
+  trainingActionId String
+
+  number           Int
+  title            String?
+
+  scheduledStart   DateTime
+  scheduledEnd     DateTime
+  actualStart      DateTime?
+  actualEnd        DateTime?
+
+  status           SessionStatus @default(UPCOMING)
+
+  qrToken          String?  @unique
+  qrTokenExpiresAt DateTime?
+
+  summary          String?  @db.Text
+
+  hasOccurrences   Boolean  @default(false)
+  occurrencesNotes String?  @db.Text
+  recursosDidaticos Json?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  trainingAction   TrainingAction @relation(fields: [trainingActionId], references: [id], onDelete: Cascade)
+  attendances      Attendance[]
+
+  @@unique([trainingActionId, number])
+  @@index([trainingActionId, scheduledStart])
+}
+
+// ============================================================================
+// 13. ATTENDANCE — per-session, per-trainee record (check-in + signature lifecycle)
+// ============================================================================
+
+model Attendance {
+  id                   String   @id @default(cuid())
+  sessionId            String
+  enrollmentId         String
+  traineeId            String
+
+  status               AttendanceStatus @default(PENDING)
+
+  // self check-in (formando)
+  checkedInAt          DateTime?
+  checkedInIp          String?
+
+  // trainer-confirmed presence
+  presentConfirmedAt   DateTime?
+  presentConfirmedById String?
+
+  // early leave tracking
+  leftEarlyAt          DateTime?
+  earlyLeaveReason     String?  @db.Text
+
+  // signature lifecycle (state machine)
+  signatureState       SignatureState @default(NOT_ENABLED)
+  signatureEnabledAt   DateTime?
+  signatureEnabledById String?
+
+  // post-session enable requires justification
+  postClassReason      String?  @db.Text
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  session              Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  enrollment           Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  trainee              Trainee    @relation(fields: [traineeId], references: [id], onDelete: Cascade)
+  signature            Signature?
+
+  @@unique([sessionId, enrollmentId])
+  @@index([traineeId])
+  @@index([sessionId, status])
+}
+
+// ============================================================================
+// 14. SIGNATURE — captured PNG with tamper-detection hash
+// ============================================================================
+
+model Signature {
+  id                  String   @id @default(cuid())
+  attendanceId        String   @unique
+  signedById          String
+
+  imageUrl            String   @db.Text
+  imageHash           String
+
+  signedAt            DateTime @default(now())
+  signedFromIp        String?
+  signedFromUserAgent String?
+
+  attendance          Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  signedBy            User       @relation(fields: [signedById], references: [id], onDelete: Restrict)
+}
+
+// ============================================================================
+// DOCUMENTS — generated DGERT docs (Dossier Técnico-Pedagógico)
+// ============================================================================
+
+model Document {
+  id               String   @id @default(cuid())
+  trainingActionId String
+
+  type             DocumentType
+  fileName         String
+  storageUrl       String   @db.Text
+  fileSize         Int
+  mimeType         String   @default("application/pdf")
+
+  generatedAt      DateTime @default(now())
+
+  trainingAction   TrainingAction @relation(fields: [trainingActionId], references: [id], onDelete: Cascade)
+
+  @@index([trainingActionId, type])
+}
+
+// ============================================================================
+// CERTIFICATES
+// ============================================================================
+
+model Certificate {
+  id               String   @id @default(cuid())
+  trainingActionId String
+  traineeId        String
+
+  number           String   @unique
+  level            CertificationLevel
+
+  issuedAt         DateTime @default(now())
+  pdfUrl           String?  @db.Text
+
+  // QR-verifiable code
+  verificationCode String   @unique @default(cuid())
+
+  trainingAction   TrainingAction @relation(fields: [trainingActionId], references: [id], onDelete: Restrict)
+  trainee          Trainee        @relation(fields: [traineeId], references: [id], onDelete: Restrict)
+
+  @@unique([trainingActionId, traineeId])
+}

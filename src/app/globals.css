@@ -2,26 +2,174 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* shadcn semantic tokens (HSL values without hsl() wrapper) */
+    --background: 228 100% 99%;
+    --foreground: 213 60% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 213 60% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 60% 12%;
+
+    --primary: 213 73% 16%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 209 100% 36%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 100% 97%;
+    --muted-foreground: 225 7% 29%;
+
+    --accent: 46 71% 47%;
+    --accent-foreground: 213 73% 16%;
+
+    --destructive: 0 75% 42%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 225 9% 79%;
+    --input: 225 9% 79%;
+    --ring: 213 73% 16%;
+
+    --radius: 0.5rem;
+
+    /* status colors */
+    --success: 152 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 35 95% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 209 100% 36%;
+    --info-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 213 60% 8%;
+    --foreground: 220 100% 97%;
+    --card: 213 50% 12%;
+    --card-foreground: 220 100% 97%;
+    --popover: 213 50% 12%;
+    --popover-foreground: 220 100% 97%;
+    --primary: 220 100% 97%;
+    --primary-foreground: 213 73% 16%;
+    --secondary: 213 40% 25%;
+    --secondary-foreground: 220 100% 97%;
+    --muted: 213 40% 18%;
+    --muted-foreground: 220 20% 70%;
+    --accent: 46 71% 55%;
+    --accent-foreground: 213 73% 16%;
+    --destructive: 0 75% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 213 40% 22%;
+    --input: 213 40% 22%;
+    --ring: 220 100% 97%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* focus ring consistency */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  /* status pill */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider;
+  }
+  .pill-success {
+    @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60;
+  }
+  .pill-warning {
+    @apply bg-amber-50 text-amber-700 ring-1 ring-amber-200/60;
+  }
+  .pill-error {
+    @apply bg-red-50 text-red-700 ring-1 ring-red-200/60;
+  }
+  .pill-info {
+    @apply bg-blue-50 text-blue-700 ring-1 ring-blue-200/60;
+  }
+  .pill-neutral {
+    @apply bg-slate-100 text-slate-600 ring-1 ring-slate-200/60;
+  }
+  .pill-gold {
+    @apply bg-gold-50 text-gold-700 ring-1 ring-gold-200/60;
+  }
+
+  /* sidebar item */
+  .sidebar-item {
+    @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-low hover:text-navy;
+  }
+  .sidebar-item-active {
+    @apply bg-surface-low font-semibold text-navy ring-1 ring-navy/5;
+  }
+
+  /* card surfaces */
+  .card-surface {
+    @apply rounded-xl border border-border bg-card shadow-card-elevated;
+  }
+  .card-interactive {
+    @apply rounded-xl border border-border bg-card transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5;
+  }
+
+  /* form controls */
+  .form-input {
+    @apply h-10 w-full rounded-lg border border-border bg-card px-3 text-sm text-foreground placeholder:text-ink-subtle focus:border-navy focus:outline-none focus:ring-2 focus:ring-navy/20;
+  }
+  textarea.form-input {
+    @apply h-auto py-2.5 leading-relaxed;
+  }
+  select.form-input {
+    @apply pr-9;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(225 9% 79%);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(225 7% 60%);
+  }
+
+  /* navy gradient backgrounds */
+  .bg-navy-gradient {
+    background: linear-gradient(135deg, #0B2447 0%, #1A3A6B 100%);
+  }
+  .bg-navy-radial {
+    background: radial-gradient(ellipse at top right, rgba(26, 58, 107, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom left, rgba(11, 36, 71, 0.6) 0%, transparent 50%),
+                #0B2447;
   }
 }
