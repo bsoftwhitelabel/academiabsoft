@@ -1,11 +1,4 @@
-import {
-  LayoutDashboard,
-  BookOpen,
-  CalendarDays,
-  Award,
-  Settings,
-} from "lucide-react";
-import { DashboardSidebar, type SidebarItem } from "@/components/dashboard/dashboard-sidebar";
+import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar";
 import { MobileBottomNav } from "@/components/trainee/bottom-nav";
 import { getSession } from "@/lib/auth/session";
@@ -22,43 +15,24 @@ export default async function PortalLayout({
 
   // Layout assumes auth (middleware enforces). Demo fallback when DB is offline.
   const user = session
-    ? { fullName: session.fullName, role: "Formando", avatarUrl: undefined as string | undefined }
-    : { fullName: MOCK_TRAINEE.fullName, role: MOCK_TRAINEE.role, avatarUrl: MOCK_TRAINEE.avatarUrl };
-
-  const items: SidebarItem[] = [
-    {
-      label: "Painel",
-      href: `/${params.tenantSlug}/portal/dashboard`,
-      icon: LayoutDashboard,
-    },
-    {
-      label: "Meus Cursos",
-      href: `/${params.tenantSlug}/portal/courses`,
-      icon: BookOpen,
-    },
-    {
-      label: "Calendário",
-      href: `/${params.tenantSlug}/portal/calendar`,
-      icon: CalendarDays,
-    },
-    {
-      label: "Certificados",
-      href: `/${params.tenantSlug}/portal/certificates`,
-      icon: Award,
-    },
-    {
-      label: "Configurações",
-      href: `/${params.tenantSlug}/portal/settings`,
-      icon: Settings,
-    },
-  ];
+    ? {
+        fullName: session.fullName,
+        role: "Formando",
+        avatarUrl: undefined as string | undefined,
+      }
+    : {
+        fullName: MOCK_TRAINEE.fullName,
+        role: MOCK_TRAINEE.role,
+        avatarUrl: MOCK_TRAINEE.avatarUrl,
+      };
 
   return (
     <>
       <DashboardSidebar
+        role="trainee"
+        tenantSlug={params.tenantSlug}
         brandTitle="Academia Digital"
         brandSubtitle="Portal do Trainee"
-        items={items}
       />
       <DashboardTopbar
         user={user}

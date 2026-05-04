@@ -2,32 +2,94 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, LucideIcon, LogOut, LifeBuoy } from "lucide-react";
+import {
+  GraduationCap,
+  LogOut,
+  LifeBuoy,
+  LayoutDashboard,
+  BookOpen,
+  CalendarDays,
+  Award,
+  Settings,
+  Users,
+  Briefcase,
+  BarChart3,
+  Activity,
+  ClipboardList,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type SidebarItem = {
+export type SidebarRole = "admin" | "trainer" | "trainee";
+
+type ItemConfig = {
   label: string;
-  href: string;
+  segment: string;
   icon: LucideIcon;
   badge?: string | number;
 };
 
+const ITEMS: Record<SidebarRole, ItemConfig[]> = {
+  admin: [
+    { label: "Dashboard", segment: "/admin/dashboard", icon: LayoutDashboard },
+    {
+      label: "Cursos",
+      segment: "/admin/courses",
+      icon: GraduationCap,
+      badge: 42,
+    },
+    {
+      label: "Estudantes",
+      segment: "/admin/trainees",
+      icon: Users,
+      badge: "1.075",
+    },
+    { label: "Instrutores", segment: "/admin/trainers", icon: Briefcase },
+    { label: "Relatórios", segment: "/admin/reports", icon: BarChart3 },
+    { label: "Configurações", segment: "/admin/settings", icon: Settings },
+  ],
+  trainer: [
+    { label: "Dashboard", segment: "/trainer/dashboard", icon: LayoutDashboard },
+    { label: "Courses", segment: "/trainer/courses", icon: GraduationCap },
+    {
+      label: "Training Actions",
+      segment: "/trainer/sessions",
+      icon: Activity,
+    },
+    { label: "Trainers", segment: "/trainer/trainers", icon: Users },
+    { label: "Trainees", segment: "/trainer/trainees", icon: Users },
+    { label: "Classes", segment: "/trainer/classes", icon: ClipboardList },
+    { label: "Reports", segment: "/trainer/reports", icon: CalendarDays },
+    { label: "Settings", segment: "/trainer/settings", icon: Settings },
+  ],
+  trainee: [
+    { label: "Painel", segment: "/portal/dashboard", icon: LayoutDashboard },
+    { label: "Meus Cursos", segment: "/portal/courses", icon: BookOpen },
+    { label: "Calendário", segment: "/portal/calendar", icon: CalendarDays },
+    { label: "Certificados", segment: "/portal/certificates", icon: Award },
+    { label: "Configurações", segment: "/portal/settings", icon: Settings },
+  ],
+};
+
 type Props = {
+  role: SidebarRole;
+  tenantSlug: string;
   brandTitle: string;
   brandSubtitle: string;
-  items: SidebarItem[];
   showSupport?: boolean;
   showLogout?: boolean;
 };
 
 export function DashboardSidebar({
+  role,
+  tenantSlug,
   brandTitle,
   brandSubtitle,
-  items,
   showSupport = true,
   showLogout = true,
 }: Props) {
   const pathname = usePathname();
+  const items = ITEMS[role];
 
   return (
     <aside className="fixed left-0 top-0 z-40 hidden h-screen w-sidebar flex-col border-r border-border bg-card md:flex">
@@ -47,14 +109,15 @@ export function DashboardSidebar({
 
       <nav className="flex-1 space-y-1 px-3">
         {items.map((item) => {
+          const href = `/${tenantSlug}${item.segment}`;
           const isActive =
-            pathname === item.href ||
-            (item.href !== "/" && pathname.startsWith(item.href));
+            pathname === href ||
+            (item.segment !== "/" && pathname.startsWith(href));
           const Icon = item.icon;
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={item.segment}
+              href={href}
               className={cn(
                 "group relative flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive
@@ -94,10 +157,13 @@ export function DashboardSidebar({
           </button>
         )}
         {showLogout && (
-          <button className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600">
+          <Link
+            href={`/${tenantSlug}/auth/logout`}
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-red-50 hover:text-red-600"
+          >
             <LogOut className="h-4 w-4" strokeWidth={2} />
             Sair
-          </button>
+          </Link>
         )}
       </div>
     </aside>
