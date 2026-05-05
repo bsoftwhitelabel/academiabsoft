@@ -389,22 +389,26 @@ function CertificateCard({
         </div>
 
         <div className="mt-5 flex gap-2">
-          <a
-            href={downloadHref}
-            target="_blank"
-            rel="noopener"
-            aria-disabled={isDemo}
-            className={cn(
-              "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
-              isDemo
-                ? "cursor-not-allowed bg-surface-mid text-ink-faint"
-                : "bg-navy text-white hover:bg-navy/90"
-            )}
-            onClick={(e) => isDemo && e.preventDefault()}
-          >
-            <Download className="h-3.5 w-3.5" />
-            PDF
-          </a>
+          {isDemo ? (
+            <span
+              aria-disabled
+              title="Demo · faz login com conta real para descarregar"
+              className="flex flex-1 cursor-not-allowed items-center justify-center gap-1.5 rounded-lg bg-surface-mid px-3 py-2 text-xs font-bold uppercase tracking-wider text-ink-faint"
+            >
+              <Download className="h-3.5 w-3.5" />
+              PDF (demo)
+            </span>
+          ) : (
+            <a
+              href={downloadHref}
+              target="_blank"
+              rel="noopener"
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-navy px-3 py-2 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-navy/90"
+            >
+              <Download className="h-3.5 w-3.5" />
+              PDF
+            </a>
+          )}
           <Link
             href={verifyHref}
             target="_blank"
