@@ -2,6 +2,7 @@ import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar";
 import { MobileBottomNav } from "@/components/trainee/bottom-nav";
 import { getSession } from "@/lib/auth/session";
+import { getNotifications } from "@/lib/notifications";
 import { MOCK_TRAINEE } from "@/lib/mock-data";
 
 export default async function PortalLayout({
@@ -26,6 +27,10 @@ export default async function PortalLayout({
         avatarUrl: MOCK_TRAINEE.avatarUrl,
       };
 
+  const notifications = session
+    ? await getNotifications(session, params.tenantSlug)
+    : [];
+
   return (
     <>
       <DashboardSidebar
@@ -37,7 +42,7 @@ export default async function PortalLayout({
       <DashboardTopbar
         user={user}
         searchPlaceholder="Buscar cursos, sessões..."
-        hasNotifications
+        notifications={notifications}
       />
       {children}
       <MobileBottomNav tenantSlug={params.tenantSlug} />

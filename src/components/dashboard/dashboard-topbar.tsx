@@ -1,6 +1,8 @@
 import Image from "next/image";
-import { Bell, HelpCircle, Search } from "lucide-react";
+import { HelpCircle, Search } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
+import { NotificationBell } from "./notification-bell";
+import type { Notification } from "@/lib/notifications";
 
 type Props = {
   user: {
@@ -9,14 +11,14 @@ type Props = {
     avatarUrl?: string | null;
   };
   searchPlaceholder?: string;
-  hasNotifications?: boolean;
+  notifications?: Notification[];
   className?: string;
 };
 
 export function DashboardTopbar({
   user,
   searchPlaceholder = "Pesquisar...",
-  hasNotifications = false,
+  notifications = [],
   className,
 }: Props) {
   return (
@@ -38,15 +40,7 @@ export function DashboardTopbar({
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
-        <button
-          aria-label="Notificações"
-          className="relative grid h-9 w-9 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface-low hover:text-navy"
-        >
-          <Bell className="h-4 w-4" strokeWidth={2} />
-          {hasNotifications && (
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background" />
-          )}
-        </button>
+        <NotificationBell notifications={notifications} />
         <button
           aria-label="Ajuda"
           className="grid h-9 w-9 place-items-center rounded-md text-ink-muted transition-colors hover:bg-surface-low hover:text-navy"

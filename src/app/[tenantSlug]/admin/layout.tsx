@@ -1,6 +1,7 @@
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { DashboardTopbar } from "@/components/dashboard/dashboard-topbar";
 import { getSession } from "@/lib/auth/session";
+import { getNotifications } from "@/lib/notifications";
 
 export default async function AdminLayout({
   children,
@@ -23,6 +24,10 @@ export default async function AdminLayout({
           "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&q=80",
       };
 
+  const notifications = session
+    ? await getNotifications(session, params.tenantSlug)
+    : [];
+
   return (
     <>
       <DashboardSidebar
@@ -31,7 +36,11 @@ export default async function AdminLayout({
         brandTitle="Academia Digital"
         brandSubtitle="Gestão de Treinamento"
       />
-      <DashboardTopbar user={user} searchPlaceholder="Pesquisar cursos..." />
+      <DashboardTopbar
+        user={user}
+        searchPlaceholder="Pesquisar cursos..."
+        notifications={notifications}
+      />
       {children}
     </>
   );
