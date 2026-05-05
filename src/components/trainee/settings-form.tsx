@@ -43,6 +43,10 @@ export function TraineeSettingsForm({ initial }: { initial: Initial }) {
   const [, startTransition] = useTransition();
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [consentResearch, setConsentResearch] = useState(true);
+  const [notifySessionReminder, setNotifySessionReminder] = useState(true);
+  const [notifyCertificate, setNotifyCertificate] = useState(true);
+  const [notifySignature, setNotifySignature] = useState(true);
+  const [notifyNewCourses, setNotifyNewCourses] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -98,6 +102,7 @@ export function TraineeSettingsForm({ initial }: { initial: Initial }) {
     >
       {/* Identification */}
       <Section
+        id="identificacao"
         title="Identificação"
         description="Dados usados para emissão de certificados DGERT · obrigatórios SIGO"
       >
@@ -268,6 +273,7 @@ export function TraineeSettingsForm({ initial }: { initial: Initial }) {
 
       {/* RGPD */}
       <Section
+        id="privacidade"
         title="Privacidade · RGPD"
         description="Direitos garantidos pelo Regulamento UE 2016/679 (GDPR)"
         accent="emerald"
@@ -312,8 +318,48 @@ export function TraineeSettingsForm({ initial }: { initial: Initial }) {
         </div>
       </Section>
 
+      {/* Notifications */}
+      <Section
+        id="notificacoes"
+        title="Notificações"
+        description="Quando e como queres ser notificado"
+      >
+        <div className="space-y-3">
+          <ConsentToggle
+            checked={notifySessionReminder}
+            onChange={setNotifySessionReminder}
+            label="Lembrete antes de cada sessão"
+            description="Recebes um email 1h antes do início de cada sessão agendada."
+          />
+          <ConsentToggle
+            checked={notifyCertificate}
+            onChange={setNotifyCertificate}
+            label="Novo certificado emitido"
+            description="Avisa-te quando um certificado fica disponível para download."
+          />
+          <ConsentToggle
+            checked={notifySignature}
+            onChange={setNotifySignature}
+            label="Assinatura desbloqueada pelo formador"
+            description="Sinal sonoro + email quando podes assinar a folha de presenças."
+          />
+          <ConsentToggle
+            checked={notifyNewCourses}
+            onChange={setNotifyNewCourses}
+            label="Novos cursos no catálogo"
+            description="Resumo semanal das novidades no domingo às 18h."
+          />
+        </div>
+
+        <div className="mt-5 rounded-lg bg-surface-low/50 p-3 text-[11px] leading-relaxed text-ink-muted">
+          <strong className="text-navy">Canais ativos:</strong> Email · in-app
+          (sino do topo). Push notifications no browser e SMS chegam em breve.
+        </div>
+      </Section>
+
       {/* Security */}
       <Section
+        id="seguranca"
         title="Segurança"
         description="Como acede à plataforma · protege a sua conta"
       >
@@ -367,16 +413,19 @@ function Section({
   description,
   children,
   accent,
+  id,
 }: {
   title: string;
   description?: string;
   children: React.ReactNode;
   accent?: "emerald" | "red";
+  id?: string;
 }) {
   return (
     <section
+      id={id}
       className={cn(
-        "rounded-xl border bg-card p-6",
+        "scroll-mt-24 rounded-xl border bg-card p-6",
         accent === "emerald"
           ? "border-emerald-200/60 bg-emerald-50/20"
           : accent === "red"
