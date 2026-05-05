@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { DashboardShell, PageHeader } from "@/components/dashboard/dashboard-shell";
 import { Button } from "@/components/ui/button";
-import { SessionRequired } from "@/components/dashboard/session-required";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { TraineeSettingsForm } from "@/components/trainee/settings-form";
@@ -39,25 +38,25 @@ const DEMO_TRAINEE = {
 
 export default async function PortalSettingsPage({ params }: Props) {
   const session = await getSession();
-  if (!session) {
-    return <SessionRequired tenantSlug={params.tenantSlug} title="Configurações" hasBottomNav />;
-  }
 
-  const trainee = await prisma.trainee.findUnique({
-    where: { userId: session.userId },
-    include: {
-      user: {
-        select: {
-          fullName: true,
-          preferredName: true,
-          email: true,
-          phone: true,
-          emailVerifiedAt: true,
+  // No early bail — page always renders with demo fallback when no session.
+  const trainee = session
+    ? await prisma.trainee.findUnique({
+        where: { userId: session.userId },
+        include: {
+          user: {
+            select: {
+              fullName: true,
+              preferredName: true,
+              email: true,
+              phone: true,
+              emailVerifiedAt: true,
+            },
+          },
+          entity: { select: { name: true } },
         },
-      },
-      entity: { select: { name: true } },
-    },
-  });
+      })
+    : null;
 
   const isUsingDemoData = !trainee;
 

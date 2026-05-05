@@ -9,7 +9,6 @@ import {
   Calendar,
 } from "lucide-react";
 import { DashboardShell, PageHeader } from "@/components/dashboard/dashboard-shell";
-import { SessionRequired } from "@/components/dashboard/session-required";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
@@ -35,21 +34,29 @@ function fmtDateLong(d: Date): string {
 
 export default async function PortalCheckinPage({ params }: Props) {
   const session = await getSession();
-  if (!session) {
-    return <SessionRequired tenantSlug={params.tenantSlug} title="Check-in" hasBottomNav />;
-  }
+  const trainee = session
+    ? await prisma.trainee.findUnique({
+        where: { userId: session.userId },
+        select: { id: true },
+      })
+    : null;
 
-  const trainee = await prisma.trainee.findUnique({
-    where: { userId: session.userId },
-    select: { id: true },
-  });
   if (!trainee) {
     return (
       <DashboardShell hasBottomNav>
-        <PageHeader title="Check-in" />
-        <p className="text-sm text-ink-muted">
-          Perfil de formando não encontrado.
-        </p>
+        <PageHeader
+          breadcrumb={[{ label: "Check-in" }]}
+          title="Check-in"
+          description="Faz login para registar presença nas tuas sessões."
+        />
+        <div className="rounded-2xl border border-dashed border-border bg-surface-low/40 px-8 py-16 text-center">
+          <p className="text-base font-bold text-navy">
+            Sem sessões disponíveis
+          </p>
+          <p className="mt-2 text-sm text-ink-muted">
+            Faz login com a tua conta para veres as sessões agendadas.
+          </p>
+        </div>
       </DashboardShell>
     );
   }

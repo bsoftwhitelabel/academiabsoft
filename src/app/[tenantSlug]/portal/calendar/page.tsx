@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { DashboardShell, PageHeader } from "@/components/dashboard/dashboard-shell";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { SessionRequired } from "@/components/dashboard/session-required";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { cn, formatTime } from "@/lib/utils";
@@ -95,14 +94,14 @@ function buildDemoSessions(year: number, month: number): CalSession[] {
 
 export default async function PortalCalendarPage({ params, searchParams }: Props) {
   const session = await getSession();
-  if (!session) {
-    return <SessionRequired tenantSlug={params.tenantSlug} title="Calendário" hasBottomNav />;
-  }
 
-  const trainee = await prisma.trainee.findUnique({
-    where: { userId: session.userId },
-    select: { id: true },
-  });
+  // No early bail — page always renders with demo fallback when no session.
+  const trainee = session
+    ? await prisma.trainee.findUnique({
+        where: { userId: session.userId },
+        select: { id: true },
+      })
+    : null;
 
   const today = new Date();
   const year = Number(searchParams.year ?? today.getFullYear());

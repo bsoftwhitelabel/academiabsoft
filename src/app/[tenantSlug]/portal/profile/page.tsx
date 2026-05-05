@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { SessionRequired } from "@/components/dashboard/session-required";
 import {
   Mail,
   Phone,
@@ -24,21 +23,19 @@ type Props = { params: { tenantSlug: string } };
 
 export default async function PortalProfilePage({ params }: Props) {
   const session = await getSession();
-  if (!session) {
-    return <SessionRequired tenantSlug={params.tenantSlug} title="Perfil" hasBottomNav />;
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    include: {
-      traineeProfile: {
+  const user = session
+    ? await prisma.user.findUnique({
+        where: { id: session.userId },
         include: {
-          enrollments: { select: { id: true } },
-          entity: { select: { name: true } },
+          traineeProfile: {
+            include: {
+              enrollments: { select: { id: true } },
+              entity: { select: { name: true } },
+            },
+          },
         },
-      },
-    },
-  });
+      })
+    : null;
 
   if (!user) {
     return (

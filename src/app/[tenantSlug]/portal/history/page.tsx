@@ -1,4 +1,3 @@
-import { SessionRequired } from "@/components/dashboard/session-required";
 import {
   History,
   Activity,
@@ -17,24 +16,30 @@ export const metadata = { title: "Histórico" };
 
 type Props = { params: { tenantSlug: string } };
 
-export default async function PortalHistoryPage({ params }: Props) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default async function PortalHistoryPage({ params: _params }: Props) {
   const session = await getSession();
-  if (!session) {
-    return <SessionRequired tenantSlug={params.tenantSlug} title="Histórico" hasBottomNav />;
-  }
-
-  const trainee = await prisma.trainee.findUnique({
-    where: { userId: session.userId },
-    select: { id: true },
-  });
+  const trainee = session
+    ? await prisma.trainee.findUnique({
+        where: { userId: session.userId },
+        select: { id: true },
+      })
+    : null;
 
   if (!trainee) {
     return (
       <DashboardShell hasBottomNav>
-        <PageHeader title="Histórico" />
-        <p className="text-sm text-ink-muted">
-          Perfil de formando não encontrado.
-        </p>
+        <PageHeader
+          breadcrumb={[{ label: "Histórico" }]}
+          title="Histórico de presenças"
+          description="Faz login com a tua conta para veres o teu histórico real."
+        />
+        <div className="rounded-2xl border border-dashed border-border bg-surface-low/40 px-8 py-16 text-center">
+          <p className="text-base font-bold text-navy">Histórico vazio</p>
+          <p className="mt-2 text-sm text-ink-muted">
+            Quando assistires à primeira sessão, ficará aqui registada.
+          </p>
+        </div>
       </DashboardShell>
     );
   }

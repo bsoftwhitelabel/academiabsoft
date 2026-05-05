@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { DashboardShell, PageHeader } from "@/components/dashboard/dashboard-shell";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { SessionRequired } from "@/components/dashboard/session-required";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { cn, formatDate } from "@/lib/utils";
@@ -157,14 +156,15 @@ const DEMO_CERT_MAP = new Map<string, { trainingActionId: string; verificationCo
 
 export default async function PortalCoursesPage({ params, searchParams }: Props) {
   const session = await getSession();
-  if (!session) {
-    return <SessionRequired tenantSlug={params.tenantSlug} title="Meus Cursos" hasBottomNav />;
-  }
 
-  const trainee = await prisma.trainee.findUnique({
-    where: { userId: session.userId },
-    select: { id: true },
-  });
+  // No early bail — page always renders. Without session/trainee, falls back
+  // to rich demo content so visitors can preview the experience.
+  const trainee = session
+    ? await prisma.trainee.findUnique({
+        where: { userId: session.userId },
+        select: { id: true },
+      })
+    : null;
 
   // Real enrollments (or empty array)
   const realEnrollments = trainee
