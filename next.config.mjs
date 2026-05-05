@@ -10,15 +10,6 @@ const nextConfig = {
     ],
   },
 
-  // Keep heavy server-only packages out of the client bundle entirely.
-  // @react-pdf/renderer (5+ MB) only runs in API routes; bcryptjs is server-only.
-  // resend is also server-only (used inside server actions).
-  serverComponentsExternalPackages: [
-    "@react-pdf/renderer",
-    "bcryptjs",
-    "resend",
-  ],
-
   experimental: {
     // Tree-shake big icon/util barrels — Next.js generates per-icon imports.
     // Cuts compile time and final bundle dramatically (lucide has 3900+ icons).
@@ -30,6 +21,15 @@ const nextConfig = {
       "@radix-ui/react-label",
       "@radix-ui/react-popover",
       "@radix-ui/react-select",
+    ],
+
+    // Keep heavy server-only packages out of the client bundle entirely.
+    // @react-pdf/renderer (5+ MB) only runs in API routes; bcryptjs/resend
+    // are server-only (used inside server actions).
+    serverComponentsExternalPackages: [
+      "@react-pdf/renderer",
+      "bcryptjs",
+      "resend",
     ],
 
     // Keep client-side router cache fresher for snappier back/forward + repeat navigations.
