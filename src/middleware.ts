@@ -11,9 +11,10 @@ import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth/jwt";
  *   4. Bare root      (/)                         → redirect to default tenant
  *
  * Auth protection:
- *   /<slug>/admin/*    → ADMIN, OWNER
- *   /<slug>/trainer/*  → TRAINER, ADMIN, OWNER
- *   /<slug>/portal/*   → TRAINEE
+ *   /<slug>/admin/*    → ADMIN, OWNER  (strict, redirects to login)
+ *   /<slug>/trainer/*  → TRAINER, ADMIN, OWNER  (strict, redirects to login)
+ *   /<slug>/portal/*   → permissive — pages render gracefully without auth
+ *                        (SessionRequired empty state OR demo data)
  *   everything else    → public
  */
 
@@ -29,14 +30,15 @@ const RESERVED_PATHS = new Set([
 const DEFAULT_TENANT = process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG ?? "oportoforte";
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN ?? "localhost:3000";
 
-const ROLE_GUARDS: Array<{
+const STRICT_GUARDS: Array<{
   prefix: string;
   roles: ReadonlyArray<string>;
 }> = [
   { prefix: "/admin", roles: ["ADMIN", "OWNER"] },
   { prefix: "/trainer", roles: ["TRAINER", "ADMIN", "OWNER"] },
-  { prefix: "/portal", roles: ["TRAINEE"] },
 ];
+
+const PERMISSIVE_PREFIXES = ["/portal"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -68,51 +70,75 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 3. Auth protection for tenant-scoped routes
+  // 3. Resolve session (best effort) — used to attach headers when available
   const segments = pathname.split("/").filter(Boolean);
   const tenantSlug = segments[0];
   const subPath = segments[1] ? `/${segments[1]}` : "";
 
-  const guard = ROLE_GUARDS.find((g) => subPath === g.prefix || subPath.startsWith(g.prefix));
-  if (!guard) {
-    return NextResponse.next();
-  }
-
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   const session = token ? await verifySessionToken(token) : null;
 
-  if (!session) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/${tenantSlug}/auth/login`;
-    url.searchParams.set("from", pathname);
-    return NextResponse.redirect(url);
+  // 4. Strict auth on /admin and /trainer (sensitive areas)
+  const strictGuard = STRICT_GUARDS.find(
+    (g) => subPath === g.prefix || subPath.startsWith(g.prefix)
+  );
+
+  if (strictGuard) {
+    if (!session) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${tenantSlug}/auth/login`;
+      url.searchParams.set("from", pathname);
+      return NextResponse.redirect(url);
+    }
+    if (session.tenantSlug !== tenantSlug) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${session.tenantSlug}/auth/login`;
+      return NextResponse.redirect(url);
+    }
+    if (!strictGuard.roles.includes(session.role)) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${tenantSlug}/catalog`;
+      return NextResponse.redirect(url);
+    }
   }
 
-  // tenant boundary check
-  if (session.tenantSlug !== tenantSlug) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/${session.tenantSlug}/auth/login`;
-    return NextResponse.redirect(url);
+  // 5. Permissive zones (/portal): never redirect to login.
+  //    Pages render with demo data OR a friendly SessionRequired empty state.
+  const isPermissive = PERMISSIVE_PREFIXES.some(
+    (p) => subPath === p || subPath.startsWith(p)
+  );
+
+  // 6. If we have a valid session, attach headers so server components can
+  //    skip re-verifying JWT (avoids Edge/Node AUTH_SECRET inconsistencies).
+  if (session) {
+    // Tenant boundary check (best effort — non-fatal in permissive zones)
+    if (
+      session.tenantSlug === tenantSlug ||
+      isPermissive ||
+      !strictGuard
+    ) {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-session-user-id", session.userId);
+      requestHeaders.set("x-session-tenant-id", session.tenantId);
+      requestHeaders.set("x-session-tenant-slug", session.tenantSlug);
+      requestHeaders.set("x-session-email", session.email);
+      requestHeaders.set("x-session-role", session.role);
+      requestHeaders.set("x-session-full-name", encodeURIComponent(session.fullName));
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
   }
 
-  // role boundary check
-  if (!guard.roles.includes(session.role)) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/${tenantSlug}/catalog`;
-    return NextResponse.redirect(url);
+  // 7. Stale or invalid cookie? If we got a token but verification failed,
+  //    clear it so the user can log in fresh on next attempt without being
+  //    stuck in a redirect loop. Only clear in permissive zones to avoid
+  //    interfering with the strict-zone redirect flow.
+  if (token && !session && isPermissive) {
+    const response = NextResponse.next();
+    response.cookies.delete(SESSION_COOKIE);
+    return response;
   }
 
-  // Attach session to request headers so server components can skip re-verifying JWT
-  // (middleware already verified — this avoids Edge/Node AUTH_SECRET inconsistencies).
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-session-user-id", session.userId);
-  requestHeaders.set("x-session-tenant-id", session.tenantId);
-  requestHeaders.set("x-session-tenant-slug", session.tenantSlug);
-  requestHeaders.set("x-session-email", session.email);
-  requestHeaders.set("x-session-role", session.role);
-  requestHeaders.set("x-session-full-name", encodeURIComponent(session.fullName));
-
-  return NextResponse.next({ request: { headers: requestHeaders } });
+  return NextResponse.next();
 }
 
 export const config = {
