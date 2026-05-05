@@ -185,7 +185,7 @@ async function getAdminNotifications(
   const in7days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  const [endingSoon, recentEnrollments] = await Promise.all([
+  const [endingSoon, recentEnrollments, pendingEntities] = await Promise.all([
     prisma.trainingAction.findMany({
       where: {
         tenantId: session.tenantId,
@@ -212,6 +212,12 @@ async function getAdminNotifications(
         },
       },
       orderBy: { enrolledAt: "desc" },
+      take: 5,
+    }),
+    prisma.entity.findMany({
+      where: { tenantId: session.tenantId, isActive: false },
+      select: { id: true, name: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
       take: 5,
     }),
   ]);
@@ -241,6 +247,18 @@ async function getAdminNotifications(
       body: e.trainingAction.course.name,
       href: `/${tenantSlug}/admin/trainees`,
       createdAt: e.enrolledAt,
+    });
+  }
+
+  for (const ent of pendingEntities) {
+    notifications.push({
+      id: `entity-${ent.id}`,
+      kind: "GENERIC",
+      title: `Empresa pendente: ${ent.name}`,
+      body: "Aguarda aprovação para ser ativada na plataforma.",
+      href: `/${tenantSlug}/admin/entities?state=pending`,
+      createdAt: ent.createdAt,
+      isUrgent: true,
     });
   }
 
