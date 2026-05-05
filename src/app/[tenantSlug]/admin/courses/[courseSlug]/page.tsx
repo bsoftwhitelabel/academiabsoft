@@ -86,9 +86,11 @@ export default async function AdminCourseDetailPage({ params }: Props) {
               <Archive className="h-4 w-4" />
               Arquivar
             </Button>
-            <Button className="h-10 gap-1.5 bg-navy text-white hover:bg-navy/90">
-              <Edit className="h-4 w-4" />
-              Editar curso
+            <Button asChild className="h-10 gap-1.5 bg-navy text-white hover:bg-navy/90">
+              <Link href={`/${params.tenantSlug}/admin/courses/${course.slug}/edit`}>
+                <Edit className="h-4 w-4" />
+                Editar curso
+              </Link>
             </Button>
           </>
         }

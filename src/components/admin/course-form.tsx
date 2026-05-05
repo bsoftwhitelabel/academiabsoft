@@ -24,17 +24,45 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
-export function CourseFormClient() {
+export type CourseFormInitial = {
+  name?: string;
+  shortName?: string;
+  code?: string;
+  areaSlug?: string;
+  modality?: string;
+  durationHours?: number;
+  certificationLevel?: string;
+  priceEur?: number | null;
+  destinatarios?: string;
+  objetivosGerais?: string;
+  objetivosEspecificos?: string;
+  metodologia?: string;
+  metodologiaAvaliacao?: string;
+  modules?: { name: string; hours: number }[];
+  coverImageUrl?: string;
+  marketingDescription?: string;
+  tagsRaw?: string;
+  isPublic?: boolean;
+  isFeatured?: boolean;
+};
+
+export function CourseFormClient({
+  initial,
+  mode = "create",
+}: {
+  initial?: CourseFormInitial;
+  mode?: "create" | "edit";
+}) {
   const [active, setActive] = useState<TabId>("info");
-  const [modules, setModules] = useState([
-    { name: "Enquadramento e legislação", hours: 4 },
-  ]);
+  const [modules, setModules] = useState(
+    initial?.modules ?? [{ name: "Enquadramento e legislação", hours: 4 }]
+  );
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.success("Curso guardado", {
+    toast.success(mode === "edit" ? "Curso atualizado" : "Curso criado", {
       description:
-        "Demonstração: este formulário não persiste dados (DB ainda não conectado).",
+        "Demonstração: este formulário não persiste dados (server action em FASE 4).",
     });
   };
 
@@ -66,7 +94,6 @@ export function CourseFormClient() {
         </div>
       </div>
 
-      {/* tab content */}
       <div className="rounded-xl border border-border bg-card p-6 md:p-8">
         {active === "info" && (
           <Grid>
@@ -74,23 +101,35 @@ export function CourseFormClient() {
               <input
                 required
                 name="name"
+                defaultValue={initial?.name ?? ""}
                 placeholder="ex: Segurança e Higiene no Trabalho"
                 className="form-input"
               />
             </Field>
             <Field label="Sigla">
-              <input name="shortName" placeholder="SHT" className="form-input" />
+              <input
+                name="shortName"
+                defaultValue={initial?.shortName ?? ""}
+                placeholder="SHT"
+                className="form-input"
+              />
             </Field>
             <Field label="Código interno" required>
               <input
                 required
                 name="code"
+                defaultValue={initial?.code ?? ""}
                 placeholder="ex: SHT-2026-001"
                 className="form-input font-mono"
               />
             </Field>
             <Field label="Área de Formação" required>
-              <select required name="areaSlug" className="form-input" defaultValue="">
+              <select
+                required
+                name="areaSlug"
+                className="form-input"
+                defaultValue={initial?.areaSlug ?? ""}
+              >
                 <option value="" disabled>
                   Selecione uma área
                 </option>
@@ -102,7 +141,12 @@ export function CourseFormClient() {
               </select>
             </Field>
             <Field label="Modalidade" required>
-              <select required name="modality" className="form-input" defaultValue="">
+              <select
+                required
+                name="modality"
+                className="form-input"
+                defaultValue={initial?.modality ?? ""}
+              >
                 <option value="" disabled>
                   Selecione modalidade
                 </option>
@@ -117,12 +161,18 @@ export function CourseFormClient() {
                 type="number"
                 min={1}
                 name="durationHours"
+                defaultValue={initial?.durationHours ?? ""}
                 placeholder="35"
                 className="form-input"
               />
             </Field>
             <Field label="Tipo de certificação" required>
-              <select required name="certificationLevel" className="form-input" defaultValue="">
+              <select
+                required
+                name="certificationLevel"
+                className="form-input"
+                defaultValue={initial?.certificationLevel ?? ""}
+              >
                 <option value="" disabled>
                   Selecione
                 </option>
@@ -137,6 +187,7 @@ export function CourseFormClient() {
                 min={0}
                 step="0.01"
                 name="priceEur"
+                defaultValue={initial?.priceEur ?? ""}
                 placeholder="320.00"
                 className="form-input"
               />
@@ -150,7 +201,8 @@ export function CourseFormClient() {
               <textarea
                 name="destinatarios"
                 rows={3}
-                placeholder="Ex: Trabalhadores em ambiente industrial com responsabilidades de segurança."
+                defaultValue={initial?.destinatarios ?? ""}
+                placeholder="Ex: Trabalhadores em ambiente industrial..."
                 className="form-input"
               />
             </Field>
@@ -159,6 +211,7 @@ export function CourseFormClient() {
                 required
                 name="objetivosGerais"
                 rows={4}
+                defaultValue={initial?.objetivosGerais ?? ""}
                 placeholder="Após o curso, o formando será capaz de..."
                 className="form-input"
               />
@@ -168,6 +221,7 @@ export function CourseFormClient() {
                 required
                 name="objetivosEspecificos"
                 rows={5}
+                defaultValue={initial?.objetivosEspecificos ?? ""}
                 placeholder="Identificar..., aplicar..., implementar..."
                 className="form-input"
               />
@@ -177,6 +231,7 @@ export function CourseFormClient() {
                 required
                 name="metodologia"
                 rows={3}
+                defaultValue={initial?.metodologia ?? ""}
                 placeholder="Sessões teóricas alternadas com casos práticos..."
                 className="form-input"
               />
@@ -185,6 +240,7 @@ export function CourseFormClient() {
               <textarea
                 name="metodologiaAvaliacao"
                 rows={3}
+                defaultValue={initial?.metodologiaAvaliacao ?? ""}
                 placeholder="Avaliação contínua + prova final..."
                 className="form-input"
               />
@@ -195,8 +251,7 @@ export function CourseFormClient() {
         {active === "modules" && (
           <div className="space-y-4">
             <p className="text-sm text-ink-muted">
-              Defina a estrutura modular do curso. As horas de cada módulo
-              devem somar a duração total.
+              Defina a estrutura modular do curso. As horas devem somar a duração total.
             </p>
             <div className="space-y-3">
               {modules.map((mod, i) => (
@@ -251,9 +306,7 @@ export function CourseFormClient() {
             <Button
               type="button"
               variant="outline"
-              onClick={() =>
-                setModules((m) => [...m, { name: "", hours: 4 }])
-              }
+              onClick={() => setModules((m) => [...m, { name: "", hours: 4 }])}
               className="border-dashed"
             >
               <Plus className="h-4 w-4" />
@@ -268,17 +321,16 @@ export function CourseFormClient() {
               <input
                 name="coverImageUrl"
                 type="url"
+                defaultValue={initial?.coverImageUrl ?? ""}
                 placeholder="https://images.unsplash.com/..."
                 className="form-input"
               />
             </Field>
-            <Field
-              label="Descrição de marketing"
-              className="md:col-span-2"
-            >
+            <Field label="Descrição de marketing" className="md:col-span-2">
               <textarea
                 name="marketingDescription"
                 rows={4}
+                defaultValue={initial?.marketingDescription ?? ""}
                 placeholder="Breve descrição apelativa para o catálogo público (máx. 280 caracteres)."
                 className="form-input"
               />
@@ -286,22 +338,31 @@ export function CourseFormClient() {
             <Field label="Tags (separadas por vírgula)" className="md:col-span-2">
               <input
                 name="tagsRaw"
+                defaultValue={initial?.tagsRaw ?? ""}
                 placeholder="DGERT, Obrigatório, Saúde Ocupacional"
                 className="form-input"
               />
             </Field>
-            <CheckboxField name="isPublic" label="Publicar no catálogo público" />
-            <CheckboxField name="isFeatured" label="Destacar como curso em foco" />
+            <CheckboxField
+              name="isPublic"
+              label="Publicar no catálogo público"
+              defaultChecked={initial?.isPublic}
+            />
+            <CheckboxField
+              name="isFeatured"
+              label="Destacar como curso em foco"
+              defaultChecked={initial?.isFeatured}
+            />
           </Grid>
         )}
       </div>
 
-      {/* footer summary */}
       <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-low/40 p-4 text-sm">
         <CheckCircle2 className="h-5 w-5 text-emerald-600" />
         <p className="text-ink-muted">
-          As alterações são guardadas como rascunho até clicar em
-          <strong className="ml-1 text-navy">Guardar curso</strong>.
+          {mode === "edit"
+            ? <>As alterações ficam num rascunho até clicares em <strong className="text-navy">Guardar alterações</strong>.</>
+            : <>As alterações são guardadas como rascunho até clicares em <strong className="text-navy">Guardar curso</strong>.</>}
         </p>
       </div>
     </form>
@@ -309,9 +370,7 @@ export function CourseFormClient() {
 }
 
 function Grid({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">{children}</div>
-  );
+  return <div className="grid grid-cols-1 gap-5 md:grid-cols-2">{children}</div>;
 }
 
 function Field({
@@ -336,12 +395,21 @@ function Field({
   );
 }
 
-function CheckboxField({ name, label }: { name: string; label: string }) {
+function CheckboxField({
+  name,
+  label,
+  defaultChecked,
+}: {
+  name: string;
+  label: string;
+  defaultChecked?: boolean;
+}) {
   return (
     <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-surface-low/40 px-4 py-3 transition-colors hover:bg-surface-low">
       <input
         type="checkbox"
         name={name}
+        defaultChecked={defaultChecked}
         className="h-4 w-4 rounded border-border accent-navy"
       />
       <span className="text-sm font-semibold text-navy">{label}</span>
