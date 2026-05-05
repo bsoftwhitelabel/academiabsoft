@@ -52,11 +52,21 @@ export default async function PortalCoursesPage({ params, searchParams }: Props)
             select: {
               name: true,
               code: true,
+              slug: true,
               durationHours: true,
               modality: true,
               coverImageUrl: true,
               certificationLevel: true,
             },
+          },
+          entity: { select: { name: true } },
+          sessions: {
+            select: {
+              id: true,
+              status: true,
+              scheduledStart: true,
+            },
+            orderBy: { scheduledStart: "asc" },
           },
           _count: { select: { sessions: true } },
         },
@@ -65,6 +75,20 @@ export default async function PortalCoursesPage({ params, searchParams }: Props)
     },
     orderBy: { enrolledAt: "desc" },
   });
+
+  // Map course → certificate (for completed)
+  const certificates = await prisma.certificate.findMany({
+    where: { traineeId: trainee.id },
+    select: {
+      trainingActionId: true,
+      verificationCode: true,
+      pdfUrl: true,
+      issuedAt: true,
+    },
+  });
+  const certByActionId = new Map(
+    certificates.map((c) => [c.trainingActionId, c])
+  );
 
   const filter = searchParams.filter ?? "all";
   const filteredEnrollments = enrollments.filter((e) => {
@@ -166,6 +190,7 @@ export default async function PortalCoursesPage({ params, searchParams }: Props)
               key={enr.id}
               enrollment={enr}
               tenantSlug={params.tenantSlug}
+              certificate={certByActionId.get(enr.trainingActionId)}
             />
           ))}
         </div>
@@ -183,22 +208,34 @@ type Enrollment = Awaited<
     course: {
       name: string;
       code: string;
+      slug: string;
       durationHours: number;
       modality: "PRESENCIAL" | "ELEARNING" | "BLENDED";
       coverImageUrl: string | null;
       certificationLevel: "PARTICIPACAO" | "APROVEITAMENTO" | "COMPETENCIAS";
     };
+    entity: { name: string } | null;
+    sessions: Array<{ id: string; status: string; scheduledStart: Date }>;
     _count: { sessions: number };
   };
   _count: { attendances: number };
 };
 
+type CertInfo = {
+  trainingActionId: string;
+  verificationCode: string;
+  pdfUrl: string | null;
+  issuedAt: Date;
+} | undefined;
+
 function EnrollmentCard({
   enrollment,
   tenantSlug,
+  certificate,
 }: {
   enrollment: Enrollment;
   tenantSlug: string;
+  certificate: CertInfo;
 }) {
   const ta = enrollment.trainingAction;
   const course = ta.course;
@@ -213,6 +250,25 @@ function EnrollmentCard({
           Math.round((enrollment._count.attendances / ta._count.sessions) * 100)
         )
       : 0;
+
+  // Smart CTA: next upcoming session for active, certificate for completed, fallback to catalog detail
+  const now = new Date();
+  const nextSession = ta.sessions.find(
+    (s) => s.scheduledStart >= now && s.status !== "CLOSED"
+  );
+
+  let ctaHref: string;
+  let ctaLabel: string;
+  if (isActive && nextSession) {
+    ctaHref = `/${tenantSlug}/portal/sessions/${nextSession.id}/checkin`;
+    ctaLabel = "Próxima sessão →";
+  } else if (isCompleted && certificate) {
+    ctaHref = `/${tenantSlug}/portal/certificates`;
+    ctaLabel = "Ver certificado →";
+  } else {
+    ctaHref = `/${tenantSlug}/catalog/${course.slug}`;
+    ctaLabel = "Ver detalhe →";
+  }
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover">
@@ -305,13 +361,15 @@ function EnrollmentCard({
 
         <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs">
           <span className="font-medium text-ink-muted">
-            Inscrito {formatDate(enrollment.enrolledAt)}
+            {ta.entity?.name
+              ? ta.entity.name
+              : `Inscrito ${formatDate(enrollment.enrolledAt)}`}
           </span>
           <Link
-            href={`/${tenantSlug}/catalog/${course.code.toLowerCase()}`}
+            href={ctaHref}
             className="font-bold text-blue-600 hover:text-navy"
           >
-            Ver detalhe →
+            {ctaLabel}
           </Link>
         </div>
       </div>

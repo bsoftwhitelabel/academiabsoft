@@ -149,6 +149,8 @@ function CertificateCard({
   cert: Certificate;
   tenantSlug: string;
 }) {
+  const downloadHref = `/api/pdf/certificate/${cert.id}`;
+  const verifyHref = `/verify/${cert.verificationCode}`;
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-card to-gold/5 p-6 transition-all hover:-translate-y-0.5 hover:shadow-card-hover">
       {/* decorative gold corner */}
@@ -211,20 +213,25 @@ function CertificateCard({
         </div>
 
         <div className="mt-5 flex gap-2">
-          <button
-            type="button"
+          <a
+            href={downloadHref}
+            target="_blank"
+            rel="noopener"
             className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-navy px-3 py-2 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-navy/90"
           >
             <Download className="h-3.5 w-3.5" />
             PDF
-          </button>
-          <button
-            type="button"
+          </a>
+          <Link
+            href={verifyHref}
+            target="_blank"
+            rel="noopener"
             className="flex items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold uppercase tracking-wider text-navy transition-colors hover:bg-surface-low"
-            aria-label="Verificar com QR"
+            aria-label="Verificar autenticidade (QR)"
+            title="Página pública de verificação"
           >
             <QrCode className="h-3.5 w-3.5" />
-          </button>
+          </Link>
         </div>
       </div>
     </article>

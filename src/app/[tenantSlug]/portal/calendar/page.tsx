@@ -179,10 +179,11 @@ export default async function PortalCalendarPage({ params, searchParams }: Props
                   </div>
                   <div className="flex-1 space-y-1 overflow-hidden">
                     {daySessions.slice(0, 3).map((s) => (
-                      <div
+                      <Link
                         key={s.id}
+                        href={`/${params.tenantSlug}/portal/sessions/${s.id}/checkin`}
                         className={cn(
-                          "truncate rounded px-1 py-0.5 text-[9px] font-bold",
+                          "block truncate rounded px-1 py-0.5 text-[9px] font-bold transition-opacity hover:opacity-85",
                           s.status === "IN_PROGRESS"
                             ? "bg-emerald-500 text-white"
                             : s.status === "CLOSED"
@@ -192,7 +193,7 @@ export default async function PortalCalendarPage({ params, searchParams }: Props
                         title={s.trainingAction.course.name}
                       >
                         {formatTime(s.scheduledStart)} {s.trainingAction.course.code}
-                      </div>
+                      </Link>
                     ))}
                     {daySessions.length > 3 && (
                       <div className="truncate text-[9px] font-medium text-ink-subtle">
@@ -235,35 +236,40 @@ export default async function PortalCalendarPage({ params, searchParams }: Props
                 {upcoming.map((s) => {
                   const isToday = ymd(new Date(s.scheduledStart)) === ymd(today);
                   return (
-                    <li key={s.id} className="flex items-start gap-3 rounded-lg border border-border bg-surface-low/30 p-3">
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-card text-blue-600 ring-1 ring-blue-200/60">
-                        <Activity className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="line-clamp-1 text-xs font-bold text-navy">
-                          {s.trainingAction.course.name}
-                        </p>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-[10px] text-ink-muted">
-                          <span className="inline-flex items-center gap-1">
-                            <Clock4 className="h-3 w-3" />
-                            {formatTime(s.scheduledStart)}
-                          </span>
-                          {s.trainingAction.entity?.name && (
-                            <span className="inline-flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {s.trainingAction.entity.name}
-                            </span>
-                          )}
+                    <li key={s.id}>
+                      <Link
+                        href={`/${params.tenantSlug}/portal/sessions/${s.id}/checkin`}
+                        className="flex items-start gap-3 rounded-lg border border-border bg-surface-low/30 p-3 transition-colors hover:border-navy/30 hover:bg-surface-low"
+                      >
+                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-card text-blue-600 ring-1 ring-blue-200/60">
+                          <Activity className="h-4 w-4" />
                         </div>
-                        <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-ink-subtle">
-                          {s.trainingAction.code} · sessão {s.number}
-                        </p>
-                      </div>
-                      {isToday && (
-                        <span className="shrink-0 rounded-full bg-gold/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gold-700">
-                          Hoje
-                        </span>
-                      )}
+                        <div className="min-w-0 flex-1">
+                          <p className="line-clamp-1 text-xs font-bold text-navy">
+                            {s.trainingAction.course.name}
+                          </p>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-[10px] text-ink-muted">
+                            <span className="inline-flex items-center gap-1">
+                              <Clock4 className="h-3 w-3" />
+                              {formatTime(s.scheduledStart)}
+                            </span>
+                            {s.trainingAction.entity?.name && (
+                              <span className="inline-flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {s.trainingAction.entity.name}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-ink-subtle">
+                            {s.trainingAction.code} · sessão {s.number}
+                          </p>
+                        </div>
+                        {isToday && (
+                          <span className="shrink-0 rounded-full bg-gold/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gold-700">
+                            Hoje
+                          </span>
+                        )}
+                      </Link>
                     </li>
                   );
                 })}

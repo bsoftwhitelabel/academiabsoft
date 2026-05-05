@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
   Download,
@@ -13,6 +14,11 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  updateTraineeSettings,
+  requestDataExport,
+  requestAccountDeletion,
+} from "@/app/[tenantSlug]/portal/settings/actions";
 
 type Initial = {
   fullName: string;
@@ -33,19 +39,35 @@ type Initial = {
 };
 
 export function TraineeSettingsForm({ initial }: { initial: Initial }) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
   const [consentMarketing, setConsentMarketing] = useState(false);
   const [consentResearch, setConsentResearch] = useState(true);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast.success("Dados guardados (demo)", {
-      description: "Em produção, persiste em Trainee + User · audit log RGPD",
+    const fd = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const res = await updateTraineeSettings(fd);
+      if (res.ok) {
+        toast.success(res.message ?? "Dados guardados.");
+        router.refresh();
+      } else {
+        toast.error(res.error);
+      }
     });
   };
 
   const handleExportData = () => {
-    toast.info("Exportação RGPD iniciada", {
-      description: "Em ~30 segundos receberá um JSON com todos os seus dados.",
+    startTransition(async () => {
+      const res = await requestDataExport();
+      if (res.ok) {
+        toast.info("Exportação RGPD iniciada", {
+          description: res.message,
+        });
+      } else {
+        toast.error(res.error);
+      }
     });
   };
 
@@ -55,8 +77,15 @@ export function TraineeSettingsForm({ initial }: { initial: Initial }) {
         "Confirmar pedido de eliminação? Os seus dados serão anonimizados em 30 dias (período de grace para auditoria DGERT)."
       )
     ) {
-      toast.error("Pedido registado", {
-        description: "Será contactado pela equipa pedagógica nas próximas 24h.",
+      startTransition(async () => {
+        const res = await requestAccountDeletion();
+        if (res.ok) {
+          toast.error("Pedido de eliminação registado", {
+            description: res.message,
+          });
+        } else {
+          toast.error(res.error);
+        }
       });
     }
   };
