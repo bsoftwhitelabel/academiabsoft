@@ -15,12 +15,10 @@ const nextConfig = {
     // Cuts compile time and final bundle dramatically (lucide has 3900+ icons).
     optimizePackageImports: [
       "lucide-react",
-      "@radix-ui/react-avatar",
       "@radix-ui/react-dialog",
       "@radix-ui/react-dropdown-menu",
       "@radix-ui/react-label",
       "@radix-ui/react-popover",
-      "@radix-ui/react-select",
     ],
 
     // Keep heavy server-only packages out of the client bundle entirely.

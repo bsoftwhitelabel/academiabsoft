@@ -22,7 +22,11 @@ export default async function TenantLayout({
   };
 
   return (
-    <div data-tenant={tenant.slug} style={brandStyle} className="min-h-screen">
+    <div
+      data-tenant={tenant.slug}
+      style={brandStyle}
+      className="min-h-screen overflow-x-hidden"
+    >
       {children}
     </div>
   );

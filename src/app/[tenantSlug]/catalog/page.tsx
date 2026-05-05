@@ -3,7 +3,7 @@ import { HeroSection } from "@/components/catalog/hero-section";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
 import { CourseCard } from "@/components/catalog/course-card";
 import { CorporateCta } from "@/components/catalog/corporate-cta";
-import { getTenantBySlug } from "@/lib/tenant";
+import { cachedGetTenantBySlug, cachedListAreas } from "@/lib/cache";
 import { prisma } from "@/lib/prisma";
 import type { MockCourse, MockArea } from "@/lib/mock-data";
 
@@ -29,17 +29,13 @@ export default async function CatalogPage({ params, searchParams }: Props) {
   const activeArea = searchParams.area ?? "all";
   const query = searchParams.q?.trim() ?? "";
 
-  const tenant = await getTenantBySlug(params.tenantSlug);
+  const tenant = await cachedGetTenantBySlug(params.tenantSlug);
   if (!tenant) {
     return <EmptyTenant />;
   }
 
-  // Resolve area filter to ID by slug
-  const areas = await prisma.trainingArea.findMany({
-    where: { tenantId: tenant.id },
-    select: { id: true, name: true, code: true },
-    orderBy: { name: "asc" },
-  });
+  // Resolve area filter to ID by slug (cached 1h)
+  const areas = await cachedListAreas(tenant.id);
 
   const areaSlugs = areas.map((a) => ({ ...a, slug: slugify(a.name) }));
   const activeAreaRecord =

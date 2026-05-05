@@ -19,6 +19,7 @@ import {
   ClipboardList,
   Shield,
   CreditCard,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,6 +53,7 @@ const ITEMS: Record<SidebarRole, ItemConfig[]> = {
     { label: "Assinaturas", segment: "/admin/signatures", icon: Shield },
     { label: "Relatórios", segment: "/admin/reports", icon: BarChart3 },
     { label: "Faturação", segment: "/admin/billing", icon: CreditCard },
+    { label: "Cache", segment: "/admin/cache", icon: Zap },
     { label: "Configurações", segment: "/admin/settings", icon: Settings },
   ],
   trainer: [
