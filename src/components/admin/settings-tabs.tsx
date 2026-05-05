@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   Palette,
@@ -11,8 +11,12 @@ import {
   Upload,
   CheckCircle2,
   AlertCircle,
+  Loader2,
+  Save,
+  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { updateTenantDomain } from "@/app/[tenantSlug]/admin/settings/actions";
 
 type TenantSettings = {
   slug: string;
@@ -76,11 +80,70 @@ export function SettingsTabs({ tenant }: Props) {
       </div>
 
       {active === "branding" && <BrandingTab tenant={tenant} />}
-      {active === "domain" && <DomainTab tenant={tenant} />}
       {active === "email" && <EmailTab />}
       {active === "integrations" && <IntegrationsTab />}
       {active === "dgert" && <DgertTab tenant={tenant} />}
     </form>
+  );
+}
+
+/**
+ * Wrapper to render Domain tab outside the global demo form
+ * (it has its own server-action form + save button).
+ */
+export function SettingsTabsWithDomain({ tenant }: Props) {
+  const [active, setActive] = useState<TabId>("branding");
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    toast.success("Configurações guardadas (demo)", {
+      description:
+        "Em produção, persiste no Tenant model · invalida cache CDN · recarrega tema.",
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-xl border border-border bg-card p-1.5">
+        <div className="grid grid-cols-2 gap-1 lg:grid-cols-5">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = active === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActive(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-semibold transition-all",
+                  isActive
+                    ? "bg-navy text-white shadow-card-elevated"
+                    : "text-ink-muted hover:bg-surface-low hover:text-navy"
+                )}
+              >
+                <Icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {active === "domain" ? (
+        <DomainTab tenant={tenant} />
+      ) : (
+        <form
+          id="settings-form"
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
+          {active === "branding" && <BrandingTab tenant={tenant} />}
+          {active === "email" && <EmailTab />}
+          {active === "integrations" && <IntegrationsTab />}
+          {active === "dgert" && <DgertTab tenant={tenant} />}
+        </form>
+      )}
+    </div>
   );
 }
 
@@ -175,8 +238,33 @@ function BrandingTab({ tenant }: { tenant: TenantSettings }) {
 
 // ─── Domain tab ───────────────────────────────────────────────────────────
 function DomainTab({ tenant }: { tenant: TenantSettings }) {
+  const [pending, startTransition] = useTransition();
+  const [draft, setDraft] = useState(tenant.domain ?? "");
+  const initial = tenant.domain ?? "";
+  const dirty = draft.trim() !== initial;
+  const subdomain = draft.split(".")[0] || "subdomain";
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    startTransition(async () => {
+      const res = await updateTenantDomain(fd);
+      if (res.ok) {
+        toast.success(res.message ?? "Guardado.");
+      } else {
+        toast.error(res.error);
+      }
+    });
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success(`${label} copiado`);
+    });
+  };
+
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <Section
         title="URL atual"
         description="É a URL onde os teus clientes acedem hoje."
@@ -184,26 +272,51 @@ function DomainTab({ tenant }: { tenant: TenantSettings }) {
         <div className="rounded-lg border border-border bg-surface-low/40 p-4 font-mono text-sm text-navy">
           https://academiab2.vercel.app/<strong className="text-gold-700">{tenant.slug}</strong>/catalog
         </div>
+        {tenant.domain && (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200/60">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Domínio guardado: <span className="font-mono">{tenant.domain}</span>
+          </div>
+        )}
       </Section>
 
       <Section
         title="Domínio personalizado"
-        description="Aponta um domínio teu (ex: formacao.bsoft.io) para o tenant. Suporta SSL automático."
+        description="Aponta um domínio teu (ex: formacao.oportoforte.com) para o tenant. SSL via Vercel."
       >
         <input
           type="text"
           name="domain"
-          placeholder="formacao.bsoft.io"
-          defaultValue={tenant.domain ?? ""}
+          placeholder="formacao.oportoforte.com"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
           className="form-input font-mono"
+          disabled={pending}
         />
         <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50/40 p-4">
           <h4 className="mb-2 inline-flex items-center gap-1.5 text-xs font-bold text-blue-800">
             <ShieldCheck className="h-3.5 w-3.5" />
-            DNS verification
+            Passos para ativar
           </h4>
-          <p className="mb-2 text-xs leading-relaxed text-ink-muted">
-            Adiciona estes 2 registos DNS no teu registrar (GoDaddy, Cloudflare, etc.):
+          <ol className="ml-4 list-decimal space-y-1 text-xs leading-relaxed text-ink-muted">
+            <li>Guarda o domínio aqui em baixo (cria registo DB).</li>
+            <li>
+              Adiciona o domínio no painel Vercel (
+              <a
+                href="https://vercel.com/dashboard"
+                target="_blank"
+                rel="noopener"
+                className="font-bold text-blue-700 hover:underline"
+              >
+                Project Settings → Domains
+              </a>
+              ).
+            </li>
+            <li>Configura o registo DNS abaixo no teu registrar (Cloudflare, GoDaddy, etc.).</li>
+            <li>Aguarda propagação DNS (5min — 24h) e verifica em Vercel.</li>
+          </ol>
+          <p className="mt-3 mb-2 text-xs leading-relaxed text-ink-muted">
+            Registo DNS necessário (1 CNAME):
           </p>
           <table className="w-full text-xs">
             <thead className="text-[10px] font-bold uppercase tracking-wider text-ink-subtle">
@@ -212,39 +325,103 @@ function DomainTab({ tenant }: { tenant: TenantSettings }) {
                 <th>Name</th>
                 <th>Value</th>
                 <th>TTL</th>
+                <th className="text-right">Ação</th>
               </tr>
             </thead>
             <tbody className="font-mono text-ink-muted">
               <tr>
                 <td className="py-1">CNAME</td>
-                <td>formacao</td>
+                <td>{subdomain}</td>
                 <td>cname.vercel-dns.com</td>
                 <td>3600</td>
-              </tr>
-              <tr>
-                <td className="py-1">TXT</td>
-                <td>_vercel</td>
-                <td className="text-[10px]">vc-domain-verify=...</td>
-                <td>3600</td>
+                <td className="py-1 text-right">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      copyToClipboard("cname.vercel-dns.com", "Valor CNAME")
+                    }
+                    className="inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-800 hover:bg-blue-200"
+                  >
+                    <Copy className="h-2.5 w-2.5" />
+                    Copiar
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <div className="mt-4 flex items-center justify-end gap-2">
+          {dirty && (
+            <button
+              type="button"
+              onClick={() => setDraft(initial)}
+              disabled={pending}
+              className="rounded-md border border-border bg-card px-4 py-2 text-xs font-bold text-ink-muted transition-colors hover:bg-surface-low"
+            >
+              Cancelar
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={!dirty || pending}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
+              dirty && !pending
+                ? "bg-navy text-white hover:bg-navy/90"
+                : "cursor-not-allowed bg-surface-mid text-ink-faint"
+            )}
+          >
+            {pending ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                A guardar…
+              </>
+            ) : (
+              <>
+                <Save className="h-3.5 w-3.5" />
+                Guardar domínio
+              </>
+            )}
+          </button>
+        </div>
       </Section>
 
-      <Section title="Modo subdomain" description="Alternativa: usar oportoforte.academia.bsoft.io (subdomain wildcard).">
-        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-surface-low/40 p-4 transition-colors hover:bg-surface-low">
-          <input type="checkbox" name="enableSubdomain" className="mt-0.5 h-4 w-4 accent-navy" />
-          <div>
-            <p className="text-sm font-bold text-navy">Ativar subdomain wildcard</p>
-            <p className="mt-0.5 text-xs text-ink-muted">
-              Requer wildcard CNAME (*.academia.bsoft.io → cname.vercel-dns.com).
-              Indicado para clientes white-label sem domínio próprio.
+      <Section
+        title="Como funciona o multi-tenant"
+        description="O middleware da app já está pronto para resolver custom domains automaticamente."
+      >
+        <div className="grid grid-cols-1 gap-3 text-xs md:grid-cols-3">
+          <div className="rounded-lg border border-border bg-surface-low/40 p-3">
+            <p className="mb-1 font-bold text-navy">Path-based</p>
+            <p className="font-mono text-ink-muted">/oportoforte/catalog</p>
+            <p className="mt-1 text-[10px] text-ink-subtle">
+              Acesso direto via slug.
             </p>
           </div>
-        </label>
+          <div className="rounded-lg border border-border bg-surface-low/40 p-3">
+            <p className="mb-1 font-bold text-navy">Subdomain</p>
+            <p className="font-mono text-ink-muted">
+              oportoforte.academia.bsoft.io
+            </p>
+            <p className="mt-1 text-[10px] text-ink-subtle">
+              Wildcard CNAME automático.
+            </p>
+          </div>
+          <div className="rounded-lg border-2 border-emerald-300 bg-emerald-50/40 p-3 ring-1 ring-emerald-200/60">
+            <p className="mb-1 font-bold text-emerald-700">
+              Custom domain ✓ esta aba
+            </p>
+            <p className="font-mono text-ink-muted">
+              formacao.oportoforte.com
+            </p>
+            <p className="mt-1 text-[10px] text-ink-subtle">
+              White-label completo.
+            </p>
+          </div>
+        </div>
       </Section>
-    </div>
+    </form>
   );
 }
 

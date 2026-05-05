@@ -4,7 +4,7 @@ import { DashboardShell, PageHeader } from "@/components/dashboard/dashboard-she
 import { Button } from "@/components/ui/button";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
-import { SettingsTabs } from "@/components/admin/settings-tabs";
+import { SettingsTabsWithDomain } from "@/components/admin/settings-tabs";
 
 export const metadata = { title: "Configurações · White-label" };
 
@@ -43,12 +43,12 @@ export default async function AdminSettingsPage({ params }: Props) {
             className="h-10 gap-1.5 bg-navy text-white hover:bg-navy/90"
           >
             <Save className="h-4 w-4" />
-            Guardar alterações
+            Guardar (demo)
           </Button>
         }
       />
 
-      <SettingsTabs
+      <SettingsTabsWithDomain
         tenant={
           tenant ?? {
             slug: params.tenantSlug,
