@@ -1,6 +1,7 @@
 import "server-only";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import type { UserRole } from "@prisma/client";
 import {
   signSessionToken,
   verifySessionToken,
@@ -25,6 +26,21 @@ export async function clearSession() {
 }
 
 export async function getSession(): Promise<SessionPayload | null> {
+  // Fast path: middleware already validated and attached session to headers
+  const h = headers();
+  const userId = h.get("x-session-user-id");
+  if (userId) {
+    return {
+      userId,
+      tenantId: h.get("x-session-tenant-id") ?? "",
+      tenantSlug: h.get("x-session-tenant-slug") ?? "",
+      email: h.get("x-session-email") ?? "",
+      role: (h.get("x-session-role") ?? "TRAINEE") as UserRole,
+      fullName: decodeURIComponent(h.get("x-session-full-name") ?? ""),
+    };
+  }
+
+  // Fallback: verify JWT cookie ourselves (e.g., for routes not protected by middleware)
   const token = cookies().get(SESSION_COOKIE)?.value;
   if (!token) return null;
   return verifySessionToken(token);

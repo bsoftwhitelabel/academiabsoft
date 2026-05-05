@@ -102,7 +102,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  // Attach session to request headers so server components can skip re-verifying JWT
+  // (middleware already verified — this avoids Edge/Node AUTH_SECRET inconsistencies).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-session-user-id", session.userId);
+  requestHeaders.set("x-session-tenant-id", session.tenantId);
+  requestHeaders.set("x-session-tenant-slug", session.tenantSlug);
+  requestHeaders.set("x-session-email", session.email);
+  requestHeaders.set("x-session-role", session.role);
+  requestHeaders.set("x-session-full-name", encodeURIComponent(session.fullName));
+
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {
