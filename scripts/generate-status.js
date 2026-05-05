@@ -3,15 +3,13 @@
  *
  * Run with: node scripts/generate-status.js
  *
- * Outputs an Excel file with 8 sheets covering the entire system status:
- * Overview, Routes, Components, Infrastructure, Pending, Bugs Fixed,
- * Credentials, Roadmap.
+ * Reflects current system state: FASE 1 + FASE 2 entregues, 14 placeholders
+ * criados, 41 rotas total, 0 sidebars 404.
  */
 
 const ExcelJS = require("exceljs");
 const path = require("path");
 
-// ─── Color palette (matches Academia Digital brand) ────────────────────────
 const COLORS = {
   navy: "FF0B2447",
   navyDeep: "FF000F27",
@@ -33,6 +31,7 @@ const COLORS = {
 
 const STATUS = {
   works: { bg: COLORS.green, fg: COLORS.greenText, label: "✅ Funciona" },
+  placeholder: { bg: COLORS.yellow, fg: COLORS.yellowText, label: "🟡 Placeholder" },
   partial: { bg: COLORS.yellow, fg: COLORS.yellowText, label: "🟡 Parcial" },
   broken: { bg: COLORS.red, fg: COLORS.redText, label: "❌ Quebrado" },
   missing: { bg: COLORS.red, fg: COLORS.redText, label: "❌ Falta (404)" },
@@ -41,7 +40,6 @@ const STATUS = {
   blocker: { bg: COLORS.red, fg: COLORS.redText, label: "🚨 Bloqueador" },
 };
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
 function applyHeader(row) {
   row.eachCell((cell) => {
     cell.font = { name: "Calibri", bold: true, size: 11, color: { argb: COLORS.white } };
@@ -79,68 +77,54 @@ function applyStatusCell(cell, status) {
   cell.alignment = { horizontal: "center", vertical: "middle" };
 }
 
-function autoWidth(sheet, padding = 2) {
-  sheet.columns.forEach((col) => {
-    let max = 10;
-    col.eachCell({ includeEmpty: false }, (cell) => {
-      const v = String(cell.value ?? "");
-      const lines = v.split("\n");
-      const longest = Math.max(...lines.map((l) => l.length));
-      if (longest > max) max = longest;
-    });
-    col.width = Math.min(max + padding, 80);
-  });
-}
-
-// ─── Data ───────────────────────────────────────────────────────────────────
-
 const ROUTES = [
-  // Public
+  // PÚBLICO
   { url: "/", type: "Redirect", access: "Público", status: "redirect", desc: "Redireciona para /oportoforte/catalog", group: "PÚBLICO" },
   { url: "/[tenant]", type: "Redirect", access: "Público", status: "redirect", desc: "Redireciona para /[tenant]/catalog", group: "PÚBLICO" },
   { url: "/[tenant]/catalog", type: "Página", access: "Público", status: "works", desc: "Catálogo público com 12 cursos · filtros por área · search · cards featured (gold border)", group: "PÚBLICO" },
   { url: "/[tenant]/catalog/[courseSlug]", type: "Página", access: "Público", status: "works", desc: "Detalhe do curso · módulos · próximas edições · sidebar inscrição · cursos relacionados", group: "PÚBLICO" },
   { url: "/[tenant]/catalog/workshops", type: "Página", access: "Público", status: "works", desc: "Landing dedicada Saúde Mental · 9 blocos · 40 workshops · 3 pacotes (€320/€890/€2400)", group: "PÚBLICO" },
 
-  // Auth
-  { url: "/[tenant]/auth/login", type: "Página", access: "Público", status: "works", desc: "Login email + password (admin/trainer)", group: "AUTH" },
-  { url: "/[tenant]/auth/magic-link", type: "Página", access: "Público", status: "works", desc: "Pedir link mágico (formando)", group: "AUTH" },
-  { url: "/[tenant]/auth/magic-link/verify?token=...", type: "Route handler", access: "Público", status: "works", desc: "Verifica JWT do magic-link e cria sessão", group: "AUTH" },
+  // AUTH
+  { url: "/[tenant]/auth/login", type: "Página", access: "Público", status: "works", desc: "Login email + password (admin/trainer) · cookie HTTP-only · redirect role-based", group: "AUTH" },
+  { url: "/[tenant]/auth/magic-link", type: "Página", access: "Público", status: "works", desc: "Pedir link mágico (formando) · console fallback se sem RESEND_API_KEY", group: "AUTH" },
+  { url: "/[tenant]/auth/magic-link/verify?token=...", type: "Route handler", access: "Público", status: "works", desc: "Verifica JWT do magic-link e cria sessão · validação tenant boundary", group: "AUTH" },
   { url: "/[tenant]/auth/logout", type: "Route handler", access: "Qualquer", status: "works", desc: "Limpa cookie de sessão e redireciona para catálogo", group: "AUTH" },
 
-  // Trainee (Formando)
+  // FORMANDO (TRAINEE)
   { url: "/[tenant]/portal", type: "Redirect", access: "TRAINEE", status: "redirect", desc: "Redireciona para /portal/dashboard", group: "FORMANDO" },
   { url: "/[tenant]/portal/dashboard", type: "Página", access: "TRAINEE", status: "works", desc: "Painel completo · sessão em curso · 3 KPIs · cursos ativos · timeline · próximo marco", group: "FORMANDO" },
+  { url: "/[tenant]/portal/courses", type: "Página", access: "TRAINEE", status: "works", desc: "Cursos do formando · filter tabs (Todos/Em curso/Concluídos/Arquivados) · 4 KPIs · progress bar", group: "FORMANDO" },
+  { url: "/[tenant]/portal/certificates", type: "Página", access: "TRAINEE", status: "works", desc: "Certificados emitidos · cards gold-tinted · botões PDF/QR · empty state context-aware", group: "FORMANDO" },
   { url: "/[tenant]/portal/sessions/[id]/checkin", type: "Página", access: "TRAINEE", status: "works", desc: "Fluxo 4-estados com canvas de assinatura digital (touch + mouse)", group: "FORMANDO" },
-  { url: "/[tenant]/portal/courses", type: "Página", access: "TRAINEE", status: "missing", desc: "Lista todos os cursos do formando · sidebar item", group: "FORMANDO" },
-  { url: "/[tenant]/portal/calendar", type: "Página", access: "TRAINEE", status: "missing", desc: "Calendário visual de sessões · sidebar item", group: "FORMANDO" },
-  { url: "/[tenant]/portal/certificates", type: "Página", access: "TRAINEE", status: "missing", desc: "Certificados emitidos · sidebar item", group: "FORMANDO" },
-  { url: "/[tenant]/portal/settings", type: "Página", access: "TRAINEE", status: "missing", desc: "Configurações de perfil · sidebar item", group: "FORMANDO" },
-  { url: "/[tenant]/portal/history", type: "Página", access: "TRAINEE", status: "missing", desc: "Histórico de formação · bottom-nav mobile item", group: "FORMANDO" },
-  { url: "/[tenant]/portal/profile", type: "Página", access: "TRAINEE", status: "missing", desc: "Perfil do formando · bottom-nav mobile item", group: "FORMANDO" },
-  { url: "/[tenant]/portal/checkin", type: "Página", access: "TRAINEE", status: "missing", desc: "Scan QR para check-in · FAB QR mobile", group: "FORMANDO" },
+  { url: "/[tenant]/portal/calendar", type: "Página", access: "TRAINEE", status: "placeholder", desc: "Placeholder · calendário visual sincronizável Google/Outlook (FASE 3)", group: "FORMANDO" },
+  { url: "/[tenant]/portal/settings", type: "Página", access: "TRAINEE", status: "placeholder", desc: "Placeholder · perfil + notificações + idioma + RGPD (FASE 3)", group: "FORMANDO" },
+  { url: "/[tenant]/portal/history", type: "Página", access: "TRAINEE", status: "placeholder", desc: "Placeholder · histórico de presenças (mobile bottom-nav)", group: "FORMANDO" },
+  { url: "/[tenant]/portal/profile", type: "Página", access: "TRAINEE", status: "placeholder", desc: "Placeholder · perfil mobile (mobile bottom-nav)", group: "FORMANDO" },
+  { url: "/[tenant]/portal/checkin", type: "Página", access: "TRAINEE", status: "placeholder", desc: "Placeholder · scan QR para check-in (FAB QR mobile)", group: "FORMANDO" },
 
-  // Trainer (Formador)
-  { url: "/[tenant]/trainer", type: "Redirect", access: "TRAINER", status: "blocker", desc: "Redireciona para /trainer/sessions (página NÃO existe → 404 após login)", group: "FORMADOR" },
-  { url: "/[tenant]/trainer/sessions", type: "Página", access: "TRAINER", status: "blocker", desc: "🚨 BLOCKER · login do trainer cai aqui e dá 404 · precisa criar lista de turmas", group: "FORMADOR" },
+  // FORMADOR (TRAINER)
+  { url: "/[tenant]/trainer", type: "Redirect", access: "TRAINER", status: "redirect", desc: "Redireciona para /trainer/sessions", group: "FORMADOR" },
+  { url: "/[tenant]/trainer/dashboard", type: "Página", access: "TRAINER", status: "works", desc: "Painel formador · hero 'sessão ao vivo' se IN_PROGRESS · 4 KPIs · próximas 5 sessões", group: "FORMADOR" },
+  { url: "/[tenant]/trainer/sessions", type: "Página", access: "TRAINER", status: "works", desc: "Lista de turmas · KPIs · cards com progress · deep-link para attendance da sessão atual", group: "FORMADOR" },
   { url: "/[tenant]/trainer/sessions/[id]/attendance", type: "Página", access: "TRAINER", status: "works", desc: "Controlo de presenças · donut chart · lista 12 formandos · dropdown PDFs DGERT", group: "FORMADOR" },
-  { url: "/[tenant]/trainer/dashboard", type: "Página", access: "TRAINER", status: "missing", desc: "Painel formador · sidebar item", group: "FORMADOR" },
-  { url: "/[tenant]/trainer/courses", type: "Página", access: "TRAINER", status: "missing", desc: "Cursos do formador · sidebar item", group: "FORMADOR" },
-  { url: "/[tenant]/trainer/trainers", type: "Página", access: "TRAINER", status: "missing", desc: "Lista de formadores · sidebar item", group: "FORMADOR" },
-  { url: "/[tenant]/trainer/trainees", type: "Página", access: "TRAINER", status: "missing", desc: "Lista de formandos do trainer · sidebar item", group: "FORMADOR" },
-  { url: "/[tenant]/trainer/classes", type: "Página", access: "TRAINER", status: "missing", desc: "Classes/turmas · sidebar item", group: "FORMADOR" },
-  { url: "/[tenant]/trainer/reports", type: "Página", access: "TRAINER", status: "missing", desc: "Relatórios formador · sidebar item", group: "FORMADOR" },
-  { url: "/[tenant]/trainer/settings", type: "Página", access: "TRAINER", status: "missing", desc: "Configurações formador · sidebar item", group: "FORMADOR" },
+  { url: "/[tenant]/trainer/courses", type: "Página", access: "TRAINER", status: "placeholder", desc: "Placeholder · cursos do formador (FASE 3)", group: "FORMADOR" },
+  { url: "/[tenant]/trainer/trainers", type: "Página", access: "TRAINER", status: "placeholder", desc: "Placeholder · diretório de formadores (FASE 3)", group: "FORMADOR" },
+  { url: "/[tenant]/trainer/trainees", type: "Página", access: "TRAINER", status: "placeholder", desc: "Placeholder · formandos das próprias turmas (FASE 3)", group: "FORMADOR" },
+  { url: "/[tenant]/trainer/classes", type: "Página", access: "TRAINER", status: "placeholder", desc: "Placeholder · agrupamento de turmas (FASE 3)", group: "FORMADOR" },
+  { url: "/[tenant]/trainer/reports", type: "Página", access: "TRAINER", status: "placeholder", desc: "Placeholder · relatórios de execução (FASE 3)", group: "FORMADOR" },
+  { url: "/[tenant]/trainer/settings", type: "Página", access: "TRAINER", status: "placeholder", desc: "Placeholder · disponibilidade + áreas + sync calendário (FASE 3)", group: "FORMADOR" },
 
-  // Admin
+  // ADMIN
   { url: "/[tenant]/admin", type: "Redirect", access: "ADMIN", status: "redirect", desc: "Redireciona para /admin/courses", group: "ADMIN" },
+  { url: "/[tenant]/admin/dashboard", type: "Página", access: "ADMIN", status: "works", desc: "Visão geral · 6 KPIs reais · turmas recentes (tabela) · próximas sessões · 3 atalhos", group: "ADMIN" },
   { url: "/[tenant]/admin/courses", type: "Página", access: "ADMIN", status: "works", desc: "Gestão de cursos · 3 filtros · grid 4-col · 9 cursos seeded · arquivado · paginação", group: "ADMIN" },
   { url: "/[tenant]/admin/courses/new", type: "Página", access: "ADMIN", status: "works", desc: "Criar novo curso · formulário 4-tabs (Info / Objetivos / Módulos / Marketing)", group: "ADMIN" },
-  { url: "/[tenant]/admin/dashboard", type: "Página", access: "ADMIN", status: "missing", desc: "Dashboard com KPIs (€ faturado · formandos · taxa conclusão) · sidebar item", group: "ADMIN" },
-  { url: "/[tenant]/admin/trainees", type: "Página", access: "ADMIN", status: "missing", desc: "Gestão de formandos · 25 seeded · sidebar item · badge 1.075", group: "ADMIN" },
-  { url: "/[tenant]/admin/trainers", type: "Página", access: "ADMIN", status: "missing", desc: "Gestão de formadores · 6 seeded · sidebar item", group: "ADMIN" },
-  { url: "/[tenant]/admin/reports", type: "Página", access: "ADMIN", status: "missing", desc: "Relatórios DGERT · sidebar item", group: "ADMIN" },
-  { url: "/[tenant]/admin/settings", type: "Página", access: "ADMIN", status: "missing", desc: "Settings white-label (logo · cor · domínio) · sidebar item", group: "ADMIN" },
+  { url: "/[tenant]/admin/courses/[courseSlug]", type: "Página", access: "ADMIN", status: "works", desc: "Detalhe admin do curso · módulos · config catálogo · ações editar/arquivar/ver no catálogo", group: "ADMIN" },
+  { url: "/[tenant]/admin/trainees", type: "Página", access: "ADMIN", status: "works", desc: "Tabela 25 formandos · busca nome/email · filter por empresa · KPIs · paginação preparada", group: "ADMIN" },
+  { url: "/[tenant]/admin/trainers", type: "Página", access: "ADMIN", status: "works", desc: "Cards 6 formadores · CCP badge · bio · stats (anos exp / turmas / status) · tags", group: "ADMIN" },
+  { url: "/[tenant]/admin/reports", type: "Página", access: "ADMIN", status: "placeholder", desc: "Placeholder · relatórios DGERT + SIGO + mapa imputação custos (FASE 3)", group: "ADMIN" },
+  { url: "/[tenant]/admin/settings", type: "Página", access: "ADMIN", status: "placeholder", desc: "Placeholder · white-label config (logo · cor · domínio · SMTP) (FASE 3)", group: "ADMIN" },
 
   // API PDFs
   { url: "/api/pdf/folha-presencas/[sessionId]", type: "API", access: "Server", status: "works", desc: "Gera Folha de Presenças DGERT (PDF download) · header tri-logo · assinaturas SVG", group: "API" },
@@ -167,42 +151,34 @@ const COMPONENTS = [
   { cat: "UI shadcn", name: "scroll-area", file: "ui/scroll-area.tsx", status: "works" },
   { cat: "UI shadcn", name: "popover", file: "ui/popover.tsx", status: "works" },
   { cat: "UI shadcn", name: "sonner", file: "ui/sonner.tsx", status: "works" },
-
   { cat: "Marketing", name: "site-header", file: "marketing/site-header.tsx", status: "works" },
   { cat: "Marketing", name: "site-footer", file: "marketing/site-footer.tsx", status: "works" },
-
   { cat: "Catalog", name: "hero-section", file: "catalog/hero-section.tsx", status: "works" },
   { cat: "Catalog", name: "catalog-filters (Client)", file: "catalog/catalog-filters.tsx", status: "works" },
   { cat: "Catalog", name: "course-card", file: "catalog/course-card.tsx", status: "works" },
   { cat: "Catalog", name: "corporate-cta", file: "catalog/corporate-cta.tsx", status: "works" },
-
-  { cat: "Dashboard", name: "dashboard-sidebar (Client) · refatorado para receber role+slug", file: "dashboard/dashboard-sidebar.tsx", status: "works" },
+  { cat: "Dashboard", name: "dashboard-sidebar (Client) · role-based items", file: "dashboard/dashboard-sidebar.tsx", status: "works" },
   { cat: "Dashboard", name: "dashboard-topbar", file: "dashboard/dashboard-topbar.tsx", status: "works" },
   { cat: "Dashboard", name: "dashboard-shell + PageHeader", file: "dashboard/dashboard-shell.tsx", status: "works" },
   { cat: "Dashboard", name: "stat-card", file: "dashboard/stat-card.tsx", status: "works" },
-
+  { cat: "Dashboard", name: "coming-soon (placeholder shared) ⭐ NOVO", file: "dashboard/coming-soon.tsx", status: "works" },
   { cat: "Trainee", name: "active-session-banner", file: "trainee/active-session-banner.tsx", status: "works" },
   { cat: "Trainee", name: "course-progress-card", file: "trainee/course-progress-card.tsx", status: "works" },
   { cat: "Trainee", name: "activity-timeline", file: "trainee/activity-timeline.tsx", status: "works" },
   { cat: "Trainee", name: "milestone-card", file: "trainee/milestone-card.tsx", status: "works" },
   { cat: "Trainee", name: "bottom-nav (Client) · mobile only", file: "trainee/bottom-nav.tsx", status: "works" },
-
-  { cat: "Admin", name: "course-grid-card (Client) · use client adicionado", file: "admin/course-grid-card.tsx", status: "works" },
+  { cat: "Admin", name: "course-grid-card (Client) · use client", file: "admin/course-grid-card.tsx", status: "works" },
   { cat: "Admin", name: "course-filter-bar (Client)", file: "admin/course-filter-bar.tsx", status: "works" },
   { cat: "Admin", name: "course-form (Client) · 4 tabs", file: "admin/course-form.tsx", status: "works" },
-
   { cat: "Trainer", name: "attendance-donut · SVG puro", file: "trainer/attendance-donut.tsx", status: "works" },
   { cat: "Trainer", name: "attendance-summary (Client)", file: "trainer/attendance-summary.tsx", status: "works" },
   { cat: "Trainer", name: "attendance-list (Client)", file: "trainer/attendance-list.tsx", status: "works" },
   { cat: "Trainer", name: "attendance-page-client (Client) · orchestrator", file: "trainer/attendance-page-client.tsx", status: "works" },
   { cat: "Trainer", name: "dgert-documents-menu (Client) · dropdown 3 PDFs", file: "trainer/dgert-documents-menu.tsx", status: "works" },
-
   { cat: "Signature", name: "signature-pad (Client) · canvas touch + mouse", file: "signature/signature-pad.tsx", status: "works" },
   { cat: "Signature", name: "checkin-flow (Client) · state machine 4 estados", file: "signature/checkin-flow.tsx", status: "works" },
-
   { cat: "Auth", name: "login-form (Client) · useFormState", file: "auth/login/login-form.tsx", status: "works" },
   { cat: "Auth", name: "request-form (Client) · magic-link", file: "auth/magic-link/request-form.tsx", status: "works" },
-
   { cat: "PDF", name: "DgertDocument · wrapper tri-logo header", file: "lib/pdf/dgert-document.tsx", status: "works" },
   { cat: "PDF", name: "FolhaPresencasPdf · IMP_10", file: "lib/pdf/folha-presencas.tsx", status: "works" },
   { cat: "PDF", name: "FichaInscricaoPdf · IMP_06", file: "lib/pdf/ficha-inscricao.tsx", status: "works" },
@@ -210,9 +186,9 @@ const COMPONENTS = [
 ];
 
 const INFRASTRUCTURE = [
-  { sys: "Repositório", provider: "GitHub", url: "https://github.com/bsoftwhitelabel/academiab2", plan: "Free (privado)", status: "works", notes: "Branch main · 4 commits · auto-deploy ligado à Vercel" },
+  { sys: "Repositório", provider: "GitHub", url: "https://github.com/bsoftwhitelabel/academiab2", plan: "Free (privado)", status: "works", notes: "Branch main · 7 commits · auto-deploy ligado à Vercel" },
   { sys: "Hospedagem", provider: "Vercel", url: "https://academiab2.vercel.app", plan: "Hobby (free)", status: "works", notes: "Region fra1 · auto-deploy do GitHub · env vars Production+Preview" },
-  { sys: "Base de dados", provider: "Supabase", url: "ecqptnirekuiibhmnbaq.supabase.co", plan: "Free", status: "works", notes: "Schema isolado 'academia' · seed Oporto Forte · pooler us-west-2" },
+  { sys: "Base de dados", provider: "Supabase", url: "ecqptnirekuiibhmnbaq.supabase.co", plan: "Free", status: "works", notes: "Schema 'academia' isolado · pooler us-west-2 (transaction 6543 / session 5432)" },
   { sys: "DNS / Domínio", provider: "Vercel", url: "academiab2.vercel.app", plan: "Hobby", status: "works", notes: "Domínio próprio (formacao.bsoft.io) · pendente configurar" },
   { sys: "Email", provider: "Resend", url: "—", plan: "Free", status: "missing", notes: "API key não configurada · magic-links aparecem em logs (dev fallback)" },
   { sys: "Storage (assinaturas)", provider: "Cloudflare R2", url: "—", plan: "Free", status: "missing", notes: "Não configurado · assinaturas atualmente em memória, perdem em refresh" },
@@ -221,118 +197,105 @@ const INFRASTRUCTURE = [
   { sys: "Local dev", provider: "Docker + Postgres 16", url: "localhost:5432", plan: "Free", status: "works", notes: "docker-compose up -d · alternativa à Supabase para dev" },
 ];
 
-const PENDING = [
-  // Bloqueadores
-  { cat: "BLOCKER", item: "/trainer/sessions (lista de turmas)", priority: "🔴 CRÍTICO", effort: "1h", blocks: "Login do trainer cai em 404 ao redirecionar", notes: "Sem isto, nenhum trainer consegue chegar à página de presenças" },
-  { cat: "BLOCKER", item: "Validar deploy d8b731b funciona", priority: "🔴 CRÍTICO", effort: "5min", blocks: "Tudo · estamos em meio do debug", notes: "Confirmar admin login funciona após último fix de Server/Client boundary" },
-
-  // Alta prioridade (DEMO)
-  { cat: "ALTO", item: "/admin/dashboard com KPIs", priority: "🟠 ALTO", effort: "3h", blocks: "Demo à Nadja precisa disto · primeira impressão admin", notes: "KPIs: 25 formandos, 6 turmas, taxa conclusão, € faturado" },
-  { cat: "ALTO", item: "/admin/trainees · listagem", priority: "🟠 ALTO", effort: "2h", blocks: "Sidebar admin tem item ativo apontando aqui", notes: "Mostra os 25 formandos seeded · filtros por entidade" },
-  { cat: "ALTO", item: "/admin/trainers · listagem", priority: "🟠 ALTO", effort: "2h", blocks: "Sidebar admin", notes: "Mostra os 6 trainers com CCP · idade · experiência" },
-  { cat: "ALTO", item: "/portal/courses · cursos do formando", priority: "🟠 ALTO", effort: "2h", blocks: "Sidebar trainee", notes: "Lista cursos completos (não só ativos) · estado por curso" },
-  { cat: "ALTO", item: "/portal/certificates · certificados emitidos", priority: "🟠 ALTO", effort: "2h", blocks: "Sidebar trainee", notes: "Cards com certificados · download PDF · QR de validação" },
-  { cat: "ALTO", item: "/trainer/dashboard · landing trainer", priority: "🟠 ALTO", effort: "2h", blocks: "Sidebar trainer", notes: "Sessões de hoje · taxa adesão média · próximas turmas" },
-
-  // Média prioridade
-  { cat: "MÉDIO", item: "/admin/reports · relatórios DGERT", priority: "🟡 MÉDIO", effort: "4h", blocks: "Sidebar admin", notes: "Relatórios mensais · taxa conclusão · NPS · custo por hora formada" },
-  { cat: "MÉDIO", item: "/portal/calendar · calendário visual", priority: "🟡 MÉDIO", effort: "4h", blocks: "Sidebar trainee", notes: "Vista mensal/semanal das sessões agendadas" },
-  { cat: "MÉDIO", item: "/admin/settings · white-label config", priority: "🟡 MÉDIO", effort: "3h", blocks: "Posicionamento white-label", notes: "Upload logo, cor primária, accent, domínio próprio" },
-  { cat: "MÉDIO", item: "/portal/settings · perfil formando", priority: "🟡 MÉDIO", effort: "1h", blocks: "Sidebar trainee", notes: "Atualização de dados pessoais (RGPD)" },
-  { cat: "MÉDIO", item: "Resend API key + verificação domínio", priority: "🟡 MÉDIO", effort: "30min + DNS", blocks: "Magic-links em produção (envio real)", notes: "Sem isto, magic-link só aparece em logs · não chega ao formando" },
-  { cat: "MÉDIO", item: "Cloudflare R2 setup · persistência das assinaturas", priority: "🟡 MÉDIO", effort: "2h", blocks: "Assinaturas reais persistentes (atualmente perdem em refresh)", notes: "Bucket R2 + AWS SDK · upload no checkin-flow" },
-  { cat: "MÉDIO", item: "Cron job para certificados auto-emitidos", priority: "🟡 MÉDIO", effort: "2h", blocks: "Pipeline DGERT completo", notes: "Após turma concluída, emitir certificados em PDF + email" },
-
-  // Baixa prioridade
-  { cat: "BAIXO", item: "/portal/history · histórico formando", priority: "🟢 BAIXO", effort: "1h", blocks: "Bottom-nav mobile", notes: "Lista cronológica de sessões + presenças assinadas" },
-  { cat: "BAIXO", item: "/portal/profile · perfil mobile", priority: "🟢 BAIXO", effort: "30min", blocks: "Bottom-nav mobile", notes: "Igual a /portal/settings mas mobile-first" },
-  { cat: "BAIXO", item: "/portal/checkin · scan QR", priority: "🟢 BAIXO", effort: "1h", blocks: "FAB QR mobile", notes: "Componente de leitura QR + redirect para sessão" },
-  { cat: "BAIXO", item: "/trainer/courses, /trainers, /trainees, /classes, /reports, /settings", priority: "🟢 BAIXO", effort: "5h total", blocks: "Sidebar trainer (vários itens 404)", notes: "Páginas placeholder ou completas · pode ser \"Em breve\"" },
-  { cat: "BAIXO", item: "Custom domain (formacao.bsoft.io)", priority: "🟢 BAIXO", effort: "DNS + 1h Vercel config", blocks: "Branding white-label", notes: "Configurar DNS CNAME · adicionar domínio na Vercel" },
-  { cat: "BAIXO", item: "API self-service para criar tenants", priority: "🟢 BAIXO", effort: "3h", blocks: "Escala white-label", notes: "POST /api/tenants para clientes novos sem SQL manual" },
-  { cat: "BAIXO", item: "Tests automatizados (Vitest + Playwright)", priority: "🟢 BAIXO", effort: "1 sprint", blocks: "Confiança em refactoring", notes: "Cobertura de fluxos críticos · login · presença · PDF" },
-  { cat: "BAIXO", item: "Dark mode toggle", priority: "🟢 BAIXO", effort: "1h", blocks: "—", notes: "Tokens já preparados · falta toggle no topbar" },
-];
-
-const BUGS_FIXED = [
-  { num: 1, bug: "Prisma 7.8 quebrou sintaxe `url = env(...)`", cause: "Breaking change Prisma 7", fix: "Downgrade para Prisma 6", commit: "—", date: "2026-05-04 (setup)" },
-  { num: 2, bug: "Build falhou: 'cn' e 'useState' unused", cause: "Imports não removidos após refactor", fix: "Remover imports", commit: "—", date: "2026-05-04 (Task 5)" },
-  { num: 3, bug: "Build falhou: 'DashboardShell' unused na course detail", cause: "Import esquecido", fix: "Remover import", commit: "—", date: "2026-05-04 (Task 2)" },
-  { num: 4, bug: "API PDF route.ts com JSX falhou compilar", cause: ".ts não suporta JSX", fix: "Renomear para .tsx", commit: "—", date: "2026-05-04 (Task 4)" },
-  { num: 5, bug: "ESLint flagou _request unused", cause: "Default config sem argsIgnorePattern", fix: "Atualizar .eslintrc.json com pattern ^_", commit: "—", date: "2026-05-04 (Task 4)" },
-  { num: 6, bug: "Workshops page _params unused", cause: "Mesmo do bug 5", fix: "Renomear params para _params", commit: "—", date: "2026-05-04 (Task 5)" },
-  { num: 7, bug: "🚨 .gitignore ignorava só .env*.local mas não .env", cause: "Default create-next-app", fix: "Adicionar .env, .env.local, .env.production e !.env.example", commit: "—", date: "2026-05-04 (Task 6)" },
-  { num: 8, bug: "Supabase tinha tabelas de outro projeto (200+ rows)", cause: "Tentativa anterior em outro tool", fix: "Schema isolado 'academia' (?schema=academia)", commit: "—", date: "2026-05-04 (Setup Supabase)" },
-  { num: 9, bug: "Prisma seed timeout (Connection limit)", cause: "Promise.all paralelo + free tier connection limit", fix: "connection_limit=5 + pool_timeout=60", commit: "—", date: "2026-05-04 (Setup Supabase)" },
-  { num: 10, bug: "Push para GitHub deu 403 (account errada)", cause: "Git Credential Manager guardado neopulsegroup", fix: "Remote URL com bsoftwhitelabel@ explícito", commit: "ff5a509", date: "2026-05-04 (GitHub push)" },
-  { num: 11, bug: "Vercel: Can't reach db.PROJECT.supabase.co:5432", cause: "Direct connection não funciona em serverless", fix: "Mudar para Pooler URL", commit: "—", date: "2026-05-04 (Vercel deploy)" },
-  { num: 12, bug: "Pooler: 'Tenant or user not found'", cause: "Username 'postgres' em vez de 'postgres.PROJECT_REF'", fix: "URL com username completo", commit: "—", date: "2026-05-04 (Vercel deploy)" },
-  { num: 13, bug: "Pooler: 'Can't reach aws-0-REGION...'", cause: "Placeholder REGION ficou literal", fix: "URL real do dashboard Supabase (us-west-2)", commit: "—", date: "2026-05-04 (Vercel deploy)" },
-  { num: 14, bug: "AUTH_SECRET must be set", cause: "Env var faltava ou < 32 chars", fix: "Adicionar valor 32+ chars · marcar Production+Preview", commit: "—", date: "2026-05-04 (Vercel deploy)" },
-  { num: 15, bug: "Schema.prisma sem directUrl", cause: "Pgbouncer transaction mode + migrações futuras", fix: "Adicionar directUrl = env('DIRECT_URL')", commit: "85cbf97", date: "2026-05-04 (Vercel deploy)" },
-  { num: 16, bug: "course-grid-card: 'Event handlers cannot be passed'", cause: "Server Component com onClick", fix: "Adicionar 'use client' directive", commit: "cf8f3b5", date: "2026-05-04 (Vercel deploy)" },
-  { num: 17, bug: "DashboardSidebar: 'Functions cannot be passed directly'", cause: "Server passa Lucide icons (forwardRef) para Client component", fix: "Refactor: items map dentro do Client component, layouts passam só role+slug", commit: "d8b731b", date: "2026-05-04 (Vercel deploy)" },
-];
-
-const CREDENTIALS = [
-  { type: "Login admin", login: "admin@oportoforte.pt", pass: "Admin@2026", access: "ADMIN", notes: "Acesso total · gestão cursos/formandos/trainers · após login → /admin/courses" },
-  { type: "Login trainer", login: "ricardo.santos@oportoforte.pt", pass: "Trainer@2026", access: "TRAINER", notes: "Após login → /trainer/sessions (página em falta · 404 atual)" },
-  { type: "Login trainer", login: "ana.pereira@oportoforte.pt", pass: "Trainer@2026", access: "TRAINER", notes: "Mesmo de cima · 6 trainers no total" },
-  { type: "Magic-link trainee", login: "maryluz.oliveira@oportoforte.pt", pass: "(nenhuma)", access: "TRAINEE", notes: "Sem password · usa magic-link · link aparece nos Vercel logs (sem Resend)" },
-  { type: "Magic-link trainee", login: "ana.martins@exemplo.pt", pass: "(nenhuma)", access: "TRAINEE", notes: "Mesmo · 25 trainees no total seeded" },
-  { type: "GitHub", login: "bsoftwhitelabel", pass: "(via browser auth)", access: "Owner", notes: "Push via Git Credential Manager · token guardado no Windows" },
-  { type: "Vercel", login: "(team mktbsoftwhitelabel-3845s-projects)", pass: "(via browser auth)", access: "Owner", notes: "Plan Hobby (free) · 100 GB bandwidth/mês" },
-  { type: "Supabase", login: "(via dashboard)", pass: "BSoftWL2026@#@!", access: "DB owner", notes: "DB password · usada na DATABASE_URL (URL-encoded como %40%23%40%21)" },
-];
-
 const ENV_VARS = [
-  { name: "DATABASE_URL", env: "Production+Preview", configured: "works", notes: "Pooler us-west-2 · port 6543 · pgbouncer=true · schema=academia" },
-  { name: "DIRECT_URL", env: "Production+Preview", configured: "works", notes: "Pooler us-west-2 · port 5432 · para migrações futuras" },
+  { name: "DATABASE_URL", env: "Production+Preview", configured: "works", notes: "Pooler us-west-2 · port 6543 · pgbouncer=true · schema=academia · postgres.PROJECT_REF" },
+  { name: "DIRECT_URL", env: "Production+Preview", configured: "works", notes: "Pooler us-west-2 · port 5432 · session pooler · para migrações" },
   { name: "AUTH_SECRET", env: "Production+Preview", configured: "works", notes: "32+ chars · usado pelo jose para assinar JWTs" },
   { name: "AUTH_URL", env: "Production+Preview", configured: "works", notes: "https://academiab2.vercel.app · usado em magic-link URLs" },
-  { name: "NEXT_PUBLIC_DEFAULT_TENANT_SLUG", env: "Production+Preview", configured: "works", notes: "oportoforte · default no middleware" },
+  { name: "NEXT_PUBLIC_DEFAULT_TENANT_SLUG", env: "Production+Preview", configured: "works", notes: "oportoforte" },
   { name: "NEXT_PUBLIC_BASE_DOMAIN", env: "Production+Preview", configured: "works", notes: "academiab2.vercel.app · usado para subdomain rewrite" },
   { name: "RESEND_API_KEY", env: "—", configured: "missing", notes: "🟠 Não configurado · magic-link só em logs · adicionar para envio real" },
   { name: "EMAIL_FROM", env: "—", configured: "missing", notes: "🟠 Sender de emails · ex: 'Academia Digital <noreply@bsoft.io>'" },
   { name: "STORAGE_ENDPOINT, ACCESS_KEY, etc.", env: "—", configured: "missing", notes: "🟠 Cloudflare R2 não configurado · assinaturas em memória" },
-  { name: "NEXT_PUBLIC_SUPABASE_URL", env: "—", configured: "pending", notes: "Opcional · só se usares Supabase JS client (não usamos)" },
-  { name: "NEXT_PUBLIC_SUPABASE_ANON_KEY", env: "—", configured: "pending", notes: "Mesmo · publishable key da Supabase" },
+];
+
+const PENDING = [
+  { cat: "FASE 3", item: "Resend API key + verificação domínio", priority: "🟠 ALTO", effort: "30min + DNS", blocks: "Magic-links em produção via email real", notes: "Sem isto, magic-link só aparece em logs · não chega ao formando" },
+  { cat: "FASE 3", item: "Cloudflare R2 setup · persistência das assinaturas", priority: "🟠 ALTO", effort: "2h", blocks: "Assinaturas reais persistentes (atualmente perdem em refresh)", notes: "Bucket R2 + AWS SDK · upload no checkin-flow" },
+  { cat: "FASE 3", item: "Cron job para certificados auto-emitidos", priority: "🟡 MÉDIO", effort: "2h", blocks: "Pipeline DGERT completo", notes: "Após turma concluída, emitir certificados em PDF + email" },
+  { cat: "FASE 3", item: "Substituir 14 placeholders por implementações reais", priority: "🟡 MÉDIO", effort: "5 dias", blocks: "Demo de profundidade", notes: "Reports DGERT · settings white-label · calendar · etc." },
+  { cat: "FASE 3", item: "Edição inline de cursos (admin/courses/[slug]/edit)", priority: "🟡 MÉDIO", effort: "3h", blocks: "Atualmente só new course tem form", notes: "Reusar CourseFormClient com pré-população" },
+  { cat: "FASE 4", item: "Custom domain (formacao.bsoft.io)", priority: "🟢 BAIXO", effort: "DNS + 1h", blocks: "Branding white-label", notes: "Configurar DNS CNAME · adicionar domínio na Vercel" },
+  { cat: "FASE 4", item: "API self-service para criar tenants", priority: "🟢 BAIXO", effort: "3h", blocks: "Escala white-label", notes: "POST /api/tenants para clientes novos sem SQL manual" },
+  { cat: "FASE 4", item: "Onboarding wizard tenant", priority: "🟢 BAIXO", effort: "6h", blocks: "Self-service setup", notes: "Logo upload · cor picker · domain verification · primeiro admin" },
+  { cat: "FASE 5", item: "Tests E2E (Playwright)", priority: "🟢 BAIXO", effort: "1 sprint", blocks: "Confiança em refactoring", notes: "Cobertura: login · presença · PDF · multi-tenant" },
+  { cat: "FASE 5", item: "Sentry + monitoring de erros", priority: "🟢 BAIXO", effort: "1h", blocks: "—", notes: "Free tier: 5k errors/mês" },
+  { cat: "FASE 5", item: "WhatsApp Business API · notificações", priority: "🟢 BAIXO", effort: "1 sprint", blocks: "Canal preferido em PT", notes: "Twilio ou 360dialog · template approval" },
+];
+
+const BUGS_FIXED = [
+  { num: 1, bug: "Prisma 7.8 quebrou sintaxe `url = env(...)`", cause: "Breaking change Prisma 7", fix: "Downgrade para Prisma 6", commit: "—", date: "Setup" },
+  { num: 2, bug: "Build falhou: 'cn' e 'useState' unused", cause: "Imports não removidos após refactor", fix: "Remover imports", commit: "—", date: "Task 5" },
+  { num: 3, bug: "Build falhou: 'DashboardShell' unused na course detail", cause: "Import esquecido", fix: "Remover import", commit: "—", date: "Task 2" },
+  { num: 4, bug: "API PDF route.ts com JSX falhou compilar", cause: ".ts não suporta JSX", fix: "Renomear para .tsx", commit: "—", date: "Task 4" },
+  { num: 5, bug: "ESLint flagou _request unused", cause: "Default config sem argsIgnorePattern", fix: "Atualizar .eslintrc.json com pattern ^_", commit: "—", date: "Task 4" },
+  { num: 6, bug: "Workshops page _params unused", cause: "Mesmo do bug 5", fix: "Renomear params para _params", commit: "—", date: "Task 5" },
+  { num: 7, bug: "🚨 .gitignore ignorava só .env*.local mas não .env", cause: "Default create-next-app", fix: "Adicionar .env, .env.local etc · !.env.example", commit: "—", date: "Task 6" },
+  { num: 8, bug: "Supabase tinha tabelas de outro projeto (200+ rows)", cause: "Tentativa anterior em outro tool", fix: "Schema isolado 'academia'", commit: "—", date: "Setup Supabase" },
+  { num: 9, bug: "Prisma seed timeout (Connection limit)", cause: "Promise.all paralelo + free tier", fix: "connection_limit=5 + pool_timeout=60", commit: "—", date: "Setup Supabase" },
+  { num: 10, bug: "Push GitHub deu 403 (account errada)", cause: "Git Credential Manager guardado neopulsegroup", fix: "Remote URL com bsoftwhitelabel@ explícito", commit: "ff5a509", date: "GitHub push" },
+  { num: 11, bug: "Vercel: Can't reach db.PROJECT.supabase.co:5432", cause: "Direct connection não funciona em serverless", fix: "Mudar para Pooler URL", commit: "—", date: "Vercel deploy" },
+  { num: 12, bug: "Pooler: 'Tenant or user not found'", cause: "Username 'postgres' em vez de 'postgres.PROJECT_REF'", fix: "URL com username completo", commit: "—", date: "Vercel deploy" },
+  { num: 13, bug: "Pooler: 'Can't reach aws-0-REGION...'", cause: "Placeholder REGION ficou literal", fix: "URL real do dashboard Supabase (us-west-2)", commit: "—", date: "Vercel deploy" },
+  { num: 14, bug: "AUTH_SECRET must be set", cause: "Env var faltava ou < 32 chars", fix: "Adicionar valor 32+ chars · marcar Production+Preview", commit: "—", date: "Vercel deploy" },
+  { num: 15, bug: "Schema.prisma sem directUrl", cause: "Pgbouncer transaction mode + migrações", fix: "Adicionar directUrl = env('DIRECT_URL')", commit: "85cbf97", date: "Vercel deploy" },
+  { num: 16, bug: "course-grid-card: 'Event handlers cannot be passed'", cause: "Server Component com onClick", fix: "Adicionar 'use client' directive", commit: "cf8f3b5", date: "Vercel deploy" },
+  { num: 17, bug: "DashboardSidebar: 'Functions cannot be passed directly'", cause: "Server passa Lucide icons (forwardRef) para Client component", fix: "Refactor: items map dentro do Client component", commit: "d8b731b", date: "Vercel deploy" },
+  { num: 18, bug: "FASE 2 build: 4 imports unused (formatCurrency, sessionsCount, PageHeader, tenantSlug)", cause: "Imports importados mas não usados após edits", fix: "Remover ou renomear para _", commit: "085831a", date: "FASE 2" },
+  { num: 19, bug: "FASE 2 type error: cert.trainingAction not on Certificate type", cause: "Awaited<ReturnType<>> não infere relations do include", fix: "Intersection type com shape de relations", commit: "085831a", date: "FASE 2" },
+  { num: 20, bug: "Sidebar items 404 (clicado · default Next 404 page)", cause: "Páginas referenciadas em sidebar mas não criadas", fix: "14 placeholders com componente ComingSoon", commit: "8eb401f", date: "FASE 2 cleanup" },
+  { num: 21, bug: "Admin course-card href 404 (/admin/courses/[slug])", cause: "Link gerado mas página inexistente", fix: "Criar /admin/courses/[courseSlug]/page.tsx (real)", commit: "8eb401f", date: "FASE 2 cleanup" },
+  { num: 22, bug: "Build placeholder fail: '\"' unescaped JSX entity", cause: "Aspas não escapadas em JSX (regra ESLint react/no-unescaped-entities)", fix: "Substituir por &ldquo; e &rdquo;", commit: "8eb401f", date: "FASE 2 cleanup" },
+];
+
+const CREDENTIALS = [
+  { type: "Login admin", login: "admin@oportoforte.pt", pass: "Admin@2026", access: "ADMIN", notes: "Após login → /admin/courses · acesso a todos os menus admin" },
+  { type: "Login trainer", login: "ricardo.santos@oportoforte.pt", pass: "Trainer@2026", access: "TRAINER", notes: "Após login → /trainer/sessions · vê T001 (Decathlon) ao vivo" },
+  { type: "Login trainer", login: "ana.pereira@oportoforte.pt", pass: "Trainer@2026", access: "TRAINER", notes: "Mesmo padrão · 6 trainers no total" },
+  { type: "Magic-link trainee", login: "maryluz.oliveira@oportoforte.pt", pass: "(nenhuma)", access: "TRAINEE", notes: "Sem password · magic-link · link aparece nos Vercel logs (sem Resend)" },
+  { type: "Magic-link trainee", login: "ana.martins@exemplo.pt", pass: "(nenhuma)", access: "TRAINEE", notes: "Mesmo padrão · 25 trainees no total" },
+  { type: "GitHub", login: "bsoftwhitelabel", pass: "(via browser auth)", access: "Owner", notes: "Push via Git Credential Manager · token guardado no Windows" },
+  { type: "Vercel", login: "(team mktbsoftwhitelabel-3845s-projects)", pass: "(via browser auth)", access: "Owner", notes: "Plan Hobby (free) · 100 GB bandwidth/mês" },
+  { type: "Supabase", login: "(via dashboard)", pass: "BSoftWL2026@#@!", access: "DB owner", notes: "DB password URL-encoded como %40%23%40%21" },
 ];
 
 const ROADMAP = [
-  // Fase 1: Validação imediata
-  { phase: "FASE 1 · Hoje", item: "Confirmar deploy d8b731b funciona em produção", priority: "🔴 CRÍTICO", effort: "5min", deps: "—", status: "pending" },
-  { phase: "FASE 1 · Hoje", item: "Testar admin login + /admin/courses carrega", priority: "🔴 CRÍTICO", effort: "5min", deps: "Deploy OK", status: "pending" },
-  { phase: "FASE 1 · Hoje", item: "Testar magic-link trainee (logs)", priority: "🔴 CRÍTICO", effort: "10min", deps: "Deploy OK", status: "pending" },
-  { phase: "FASE 1 · Hoje", item: "Criar /trainer/sessions (lista turmas)", priority: "🔴 CRÍTICO", effort: "1h", deps: "Deploy OK", status: "pending" },
+  // FASE 1 - tudo done
+  { phase: "FASE 1 · DONE ✅", item: "Validar deploy + testar 3 logins (admin/trainer/trainee)", priority: "🔴 CRÍTICO", effort: "—", deps: "—", status: "works" },
+  { phase: "FASE 1 · DONE ✅", item: "Criar /trainer/sessions (lista turmas)", priority: "🔴 CRÍTICO", effort: "—", deps: "—", status: "works" },
 
-  // Fase 2: Demo ready
-  { phase: "FASE 2 · Esta semana", item: "Criar /admin/dashboard com KPIs", priority: "🟠 ALTO", effort: "3h", deps: "Fase 1 completa", status: "pending" },
-  { phase: "FASE 2 · Esta semana", item: "Criar /admin/trainees · listagem 25 formandos", priority: "🟠 ALTO", effort: "2h", deps: "—", status: "pending" },
-  { phase: "FASE 2 · Esta semana", item: "Criar /admin/trainers · listagem 6 trainers", priority: "🟠 ALTO", effort: "2h", deps: "—", status: "pending" },
-  { phase: "FASE 2 · Esta semana", item: "Criar /trainer/dashboard · sessões hoje", priority: "🟠 ALTO", effort: "2h", deps: "—", status: "pending" },
-  { phase: "FASE 2 · Esta semana", item: "Criar /portal/courses · cursos do formando", priority: "🟠 ALTO", effort: "2h", deps: "—", status: "pending" },
-  { phase: "FASE 2 · Esta semana", item: "Criar /portal/certificates · certificados", priority: "🟠 ALTO", effort: "2h", deps: "—", status: "pending" },
-  { phase: "FASE 2 · Esta semana", item: "Setup Resend API + verificar domínio", priority: "🟠 ALTO", effort: "1h + DNS wait", deps: "Domínio decidido", status: "pending" },
+  // FASE 2 - tudo done excepto Resend
+  { phase: "FASE 2 · DONE ✅", item: "/admin/dashboard com 6 KPIs reais", priority: "🟠 ALTO", effort: "—", deps: "—", status: "works" },
+  { phase: "FASE 2 · DONE ✅", item: "/admin/trainees · listagem 25 formandos", priority: "🟠 ALTO", effort: "—", deps: "—", status: "works" },
+  { phase: "FASE 2 · DONE ✅", item: "/admin/trainers · listagem 6 trainers", priority: "🟠 ALTO", effort: "—", deps: "—", status: "works" },
+  { phase: "FASE 2 · DONE ✅", item: "/admin/courses/[slug] · detalhe admin do curso", priority: "🟠 ALTO", effort: "—", deps: "—", status: "works" },
+  { phase: "FASE 2 · DONE ✅", item: "/trainer/dashboard · sessão ao vivo", priority: "🟠 ALTO", effort: "—", deps: "—", status: "works" },
+  { phase: "FASE 2 · DONE ✅", item: "/portal/courses · cursos do formando", priority: "🟠 ALTO", effort: "—", deps: "—", status: "works" },
+  { phase: "FASE 2 · DONE ✅", item: "/portal/certificates · certificados", priority: "🟠 ALTO", effort: "—", deps: "—", status: "works" },
+  { phase: "FASE 2 · DONE ✅", item: "14 placeholders com ComingSoon component", priority: "🟠 ALTO", effort: "—", deps: "—", status: "works" },
+  { phase: "FASE 2 · pendente", item: "Setup Resend API + verificar domínio", priority: "🟠 ALTO", effort: "1h + DNS", deps: "Domínio decidido", status: "pending" },
 
-  // Fase 3: Robustez
-  { phase: "FASE 3 · Próximas 2 semanas", item: "Cloudflare R2 setup · persistir assinaturas", priority: "🟡 MÉDIO", effort: "2h", deps: "—", status: "pending" },
-  { phase: "FASE 3 · Próximas 2 semanas", item: "Cron certificados auto-emitidos pós-turma", priority: "🟡 MÉDIO", effort: "2h", deps: "Resend OK", status: "pending" },
-  { phase: "FASE 3 · Próximas 2 semanas", item: "Páginas /admin/reports, /admin/settings", priority: "🟡 MÉDIO", effort: "4h+3h", deps: "—", status: "pending" },
-  { phase: "FASE 3 · Próximas 2 semanas", item: "Páginas /portal/calendar, /settings", priority: "🟡 MÉDIO", effort: "4h+1h", deps: "—", status: "pending" },
-  { phase: "FASE 3 · Próximas 2 semanas", item: "Sidebar items trainer restantes (placeholders)", priority: "🟡 MÉDIO", effort: "3h", deps: "—", status: "pending" },
+  // FASE 3 - converter placeholders + persistência real
+  { phase: "FASE 3 · 2 semanas", item: "Cloudflare R2 · persistir assinaturas (substituir memória)", priority: "🟠 ALTO", effort: "2h", deps: "—", status: "pending" },
+  { phase: "FASE 3 · 2 semanas", item: "Cron certificados auto-emitidos pós-turma", priority: "🟡 MÉDIO", effort: "2h", deps: "Resend OK", status: "pending" },
+  { phase: "FASE 3 · 2 semanas", item: "/admin/reports · relatórios DGERT reais", priority: "🟡 MÉDIO", effort: "4h", deps: "—", status: "pending" },
+  { phase: "FASE 3 · 2 semanas", item: "/admin/settings · white-label config completo", priority: "🟡 MÉDIO", effort: "3h", deps: "—", status: "pending" },
+  { phase: "FASE 3 · 2 semanas", item: "/portal/calendar · calendário visual", priority: "🟡 MÉDIO", effort: "4h", deps: "—", status: "pending" },
+  { phase: "FASE 3 · 2 semanas", item: "/portal/settings · perfil + RGPD", priority: "🟡 MÉDIO", effort: "1h", deps: "—", status: "pending" },
+  { phase: "FASE 3 · 2 semanas", item: "Edição inline cursos (/admin/courses/[slug]/edit)", priority: "🟡 MÉDIO", effort: "3h", deps: "—", status: "pending" },
+  { phase: "FASE 3 · 2 semanas", item: "Trainer placeholders → real (courses, trainees, etc.)", priority: "🟢 BAIXO", effort: "5h", deps: "—", status: "pending" },
 
-  // Fase 4: White-label
+  // FASE 4 - white-label scale
   { phase: "FASE 4 · 1 mês", item: "Custom domain (formacao.bsoft.io)", priority: "🟢 BAIXO", effort: "DNS + 1h", deps: "—", status: "pending" },
-  { phase: "FASE 4 · 1 mês", item: "API self-service para criar novos tenants", priority: "🟢 BAIXO", effort: "3h", deps: "Auth admin OK", status: "pending" },
-  { phase: "FASE 4 · 1 mês", item: "Onboarding wizard tenant (logo · cor · domínio)", priority: "🟢 BAIXO", effort: "6h", deps: "API tenants OK", status: "pending" },
-  { phase: "FASE 4 · 1 mês", item: "Vercel Edge Config para multi-tenant routing prod", priority: "🟢 BAIXO", effort: "2h", deps: "Domains setup", status: "pending" },
+  { phase: "FASE 4 · 1 mês", item: "API self-service para criar tenants", priority: "🟢 BAIXO", effort: "3h", deps: "Auth OK", status: "pending" },
+  { phase: "FASE 4 · 1 mês", item: "Onboarding wizard novo tenant", priority: "🟢 BAIXO", effort: "6h", deps: "API tenants", status: "pending" },
+  { phase: "FASE 4 · 1 mês", item: "Vercel Edge Config para domain routing", priority: "🟢 BAIXO", effort: "2h", deps: "Domains setup", status: "pending" },
 
-  // Fase 5: Maturação
+  // FASE 5 - maturação
   { phase: "FASE 5 · 2 meses", item: "Tests E2E (Playwright) cobertura crítica", priority: "🟢 BAIXO", effort: "1 sprint", deps: "Estável", status: "pending" },
   { phase: "FASE 5 · 2 meses", item: "Sentry para monitoring de erros", priority: "🟢 BAIXO", effort: "1h", deps: "—", status: "pending" },
-  { phase: "FASE 5 · 2 meses", item: "Vercel Analytics + GA4", priority: "🟢 BAIXO", effort: "1h", deps: "Pro plan se quiser Vercel Analytics", status: "pending" },
-  { phase: "FASE 5 · 2 meses", item: "Calendar sync (Google Cal · Outlook)", priority: "🟢 BAIXO", effort: "1 sprint", deps: "OAuth setup", status: "pending" },
+  { phase: "FASE 5 · 2 meses", item: "GA4 ou Vercel Analytics", priority: "🟢 BAIXO", effort: "1h", deps: "—", status: "pending" },
+  { phase: "FASE 5 · 2 meses", item: "Calendar sync (Google · Outlook)", priority: "🟢 BAIXO", effort: "1 sprint", deps: "OAuth", status: "pending" },
   { phase: "FASE 5 · 2 meses", item: "WhatsApp Business API · notificações", priority: "🟢 BAIXO", effort: "1 sprint", deps: "Twilio/360dialog", status: "pending" },
 ];
 
@@ -355,7 +318,7 @@ overview.getCell("A1").alignment = { horizontal: "center", vertical: "middle" };
 overview.getRow(1).height = 56;
 
 overview.mergeCells("A2:F2");
-overview.getCell("A2").value = `Snapshot · ${new Date().toLocaleDateString("pt-PT", { dateStyle: "long" })} · BSoft White Label SaaS`;
+overview.getCell("A2").value = `Snapshot · ${new Date().toLocaleDateString("pt-PT", { dateStyle: "long" })} · FASE 1 + 2 entregues · 41 rotas · 0 sidebars 404`;
 overview.getCell("A2").font = { name: "Calibri", italic: true, size: 11, color: { argb: COLORS.gold } };
 overview.getCell("A2").fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.navyDeep } };
 overview.getCell("A2").alignment = { horizontal: "center" };
@@ -368,13 +331,12 @@ applyHeader(overview.getRow(4));
 
 const stats = [
   ["Total de rotas", `=COUNTA(Rotas!A:A)-1`, "Soma de todas as URLs do sistema"],
-  ["Rotas funcionais", `=COUNTIF(Rotas!D:D,"✅ Funciona")`, "Páginas/APIs que rodam"],
+  ["Rotas funcionais", `=COUNTIF(Rotas!D:D,"✅ Funciona")`, "Páginas/APIs que rodam com queries Prisma reais"],
+  ["Placeholders", `=COUNTIF(Rotas!D:D,"🟡 Placeholder")`, "Em construção · navegáveis · 'Coming soon' card"],
   ["Redirects", `=COUNTIF(Rotas!D:D,"🔵 Redirect")`, "Rotas que redirecionam"],
-  ["Rotas em falta (404)", `=COUNTIF(Rotas!D:D,"❌ Falta (404)")`, "Sidebar items sem página"],
-  ["Bloqueadores", `=COUNTIF(Rotas!D:D,"🚨 Bloqueador")`, "Impedem fluxo crítico"],
   ["Componentes criados", `=COUNTA(Componentes!A:A)-1`, "Files em src/components"],
   ["Bugs resolvidos", `=COUNTA('Bugs Resolvidos'!A:A)-1`, "Sessão 04 Maio 2026"],
-  ["Itens pendentes", `=COUNTA(Pendentes!A:A)-1`, "Trabalho mapeado"],
+  ["Itens pendentes", `=COUNTA(Pendentes!A:A)-1`, "Trabalho mapeado FASE 3+"],
   ["Sistemas externos", `=COUNTA(Infraestrutura!A:A)-1`, "GitHub, Vercel, Supabase, etc."],
 ];
 
@@ -385,13 +347,12 @@ stats.forEach((row, i) => {
   overview.getCell(`B${5 + i}`).alignment = { horizontal: "center" };
 });
 
-// Section 2: links rápidos
-overview.getCell("A15").value = "🔗 Links rápidos";
-overview.mergeCells("A15:F15");
-overview.getCell("A15").font = { name: "Calibri", bold: true, size: 14, color: { argb: COLORS.white } };
-overview.getCell("A15").fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.navy } };
-overview.getCell("A15").alignment = { horizontal: "left", vertical: "middle", indent: 1 };
-overview.getRow(15).height = 28;
+overview.getCell("A14").value = "🔗 Links rápidos";
+overview.mergeCells("A14:F14");
+overview.getCell("A14").font = { name: "Calibri", bold: true, size: 14, color: { argb: COLORS.white } };
+overview.getCell("A14").fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.navy } };
+overview.getCell("A14").alignment = { horizontal: "left", vertical: "middle", indent: 1 };
+overview.getRow(14).height = 28;
 
 const quickLinks = [
   ["Site em produção", "https://academiab2.vercel.app"],
@@ -399,13 +360,16 @@ const quickLinks = [
   ["Workshops Saúde Mental", "https://academiab2.vercel.app/oportoforte/catalog/workshops"],
   ["Login admin/trainer", "https://academiab2.vercel.app/oportoforte/auth/login"],
   ["Magic-link formando", "https://academiab2.vercel.app/oportoforte/auth/magic-link"],
+  ["Admin dashboard", "https://academiab2.vercel.app/oportoforte/admin/dashboard"],
+  ["Trainer dashboard", "https://academiab2.vercel.app/oportoforte/trainer/dashboard"],
+  ["Portal trainee", "https://academiab2.vercel.app/oportoforte/portal/dashboard"],
   ["GitHub repo", "https://github.com/bsoftwhitelabel/academiab2"],
   ["Vercel dashboard", "https://vercel.com/mktbsoftwhitelabel-3845s-projects/academiab2"],
   ["Supabase project", "https://supabase.com/dashboard/project/ecqptnirekuiibhmnbaq"],
 ];
 
 quickLinks.forEach((row, i) => {
-  const r = 16 + i;
+  const r = 15 + i;
   overview.getCell(`A${r}`).value = row[0];
   overview.getCell(`B${r}`).value = { text: row[1], hyperlink: row[1] };
   overview.getCell(`B${r}`).font = { name: "Calibri", color: { argb: COLORS.blueText }, underline: true, size: 10 };
@@ -414,28 +378,28 @@ quickLinks.forEach((row, i) => {
   overview.getCell(`A${r}`).font = { name: "Calibri", bold: true, size: 10 };
 });
 
-// Section 3: status atual
-overview.getCell("A26").value = "📌 Estado atual (snapshot)";
-overview.mergeCells("A26:F26");
-overview.getCell("A26").font = { name: "Calibri", bold: true, size: 14, color: { argb: COLORS.white } };
-overview.getCell("A26").fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.navy } };
-overview.getCell("A26").alignment = { horizontal: "left", vertical: "middle", indent: 1 };
-overview.getRow(26).height = 28;
+overview.getCell("A28").value = "📌 Estado atual (snapshot)";
+overview.mergeCells("A28:F28");
+overview.getCell("A28").font = { name: "Calibri", bold: true, size: 14, color: { argb: COLORS.white } };
+overview.getCell("A28").fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.navy } };
+overview.getCell("A28").alignment = { horizontal: "left", vertical: "middle", indent: 1 };
+overview.getRow(28).height = 28;
 
 const statusItems = [
-  ["✅ Stack base completa", "Next.js 14 · TypeScript · Tailwind · shadcn/ui · Prisma 6 · Auth custom"],
-  ["✅ DB Supabase ligada", "Schema isolado 'academia' · pooler us-west-2 · 25 trainees seeded"],
-  ["✅ Build passa", "21 rotas geradas · 0 erros TypeScript"],
-  ["✅ Deploy Vercel ativo", "academiab2.vercel.app · auto-deploy do GitHub"],
-  ["✅ PDFs DGERT funcionam", "Folha Presenças · Ficha Inscrição · Ata Reunião"],
-  ["⚠️ Sidebar com items 404", "20+ links em sidebars apontam para páginas em falta"],
-  ["🚨 /trainer/sessions falta", "Login do trainer cai em 404 · BLOCKER demo trainer"],
+  ["✅ FASE 1 entregue", "Login 3-roles funcional · catálogo público · trainer/sessions criada"],
+  ["✅ FASE 2 entregue (pages)", "6 páginas reais com Prisma queries · 4 dashboards + 2 listagens"],
+  ["✅ Sidebars 100% navegáveis", "0 sidebar items levam a 404 · 14 placeholders com 'Em breve'"],
+  ["✅ Build verde", "41 rotas geradas · 0 erros · 22 bugs resolvidos durante o caminho"],
+  ["✅ DB Supabase populada", "schema 'academia' · pooler us-west-2 · 25 trainees · 6 turmas seeded"],
+  ["✅ PDFs DGERT funcionam", "3 templates com tri-logo + assinaturas SVG"],
   ["⚠️ Resend não configurado", "Magic-links só em logs (não chegam ao formando real)"],
-  ["⚠️ Assinaturas em memória", "Não persistem em refresh · falta R2/S3"],
+  ["⚠️ Assinaturas em memória", "Não persistem em refresh · falta Cloudflare R2 (FASE 3)"],
+  ["⚠️ Edição de cursos pendente", "/admin/courses/[slug] mostra detalhe mas falta /edit"],
+  ["⚠️ 14 placeholders por converter", "Reports, settings, calendar, etc. · FASE 3"],
 ];
 
 statusItems.forEach((row, i) => {
-  const r = 27 + i;
+  const r = 29 + i;
   overview.getCell(`A${r}`).value = row[0];
   overview.getCell(`B${r}`).value = row[1];
   overview.mergeCells(`B${r}:F${r}`);
@@ -510,7 +474,6 @@ infra.columns = [
   { width: 22 }, { width: 18 }, { width: 42 }, { width: 16 }, { width: 18 }, { width: 60 },
 ];
 
-// Sub-section: Env vars
 const envStart = INFRASTRUCTURE.length + 4;
 infra.getCell(`A${envStart - 1}`).value = "🔐 Variáveis de Ambiente Vercel";
 infra.mergeCells(`A${envStart - 1}:F${envStart - 1}`);
@@ -540,16 +503,15 @@ pending.views = [{ state: "frozen", ySplit: 1 }];
 PENDING.forEach((p, i) => {
   const row = pending.addRow([p.cat, p.item, p.priority, p.effort, p.blocks, p.notes]);
   applyDataRow(row, i % 2 === 0);
-  // colour the cat cell
-  if (p.cat === "BLOCKER") {
-    row.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.red } };
-    row.getCell(1).font = { name: "Calibri", bold: true, color: { argb: COLORS.redText } };
-  } else if (p.cat === "ALTO") {
+  if (p.cat === "FASE 3") {
     row.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.orange } };
     row.getCell(1).font = { name: "Calibri", bold: true, color: { argb: COLORS.orangeText } };
-  } else if (p.cat === "MÉDIO") {
+  } else if (p.cat === "FASE 4") {
     row.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.yellow } };
     row.getCell(1).font = { name: "Calibri", bold: true, color: { argb: COLORS.yellowText } };
+  } else if (p.cat === "FASE 5") {
+    row.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.blue } };
+    row.getCell(1).font = { name: "Calibri", bold: true, color: { argb: COLORS.blueText } };
   }
 });
 
@@ -620,16 +582,16 @@ roadmap.views = [{ state: "frozen", ySplit: 1 }];
 ROADMAP.forEach((r, i) => {
   const row = roadmap.addRow([r.phase, r.item, r.priority, r.effort, r.deps, ""]);
   applyDataRow(row, i % 2 === 0);
-  if (r.phase.includes("FASE 1")) {
-    row.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.red } };
-    row.getCell(1).font = { name: "Calibri", bold: true, color: { argb: COLORS.redText } };
-  } else if (r.phase.includes("FASE 2")) {
+  if (r.phase.includes("FASE 1") || r.phase.includes("FASE 2")) {
+    row.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.green } };
+    row.getCell(1).font = { name: "Calibri", bold: true, color: { argb: COLORS.greenText } };
+  } else if (r.phase.includes("FASE 3")) {
     row.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.orange } };
     row.getCell(1).font = { name: "Calibri", bold: true, color: { argb: COLORS.orangeText } };
-  } else if (r.phase.includes("FASE 3")) {
+  } else if (r.phase.includes("FASE 4")) {
     row.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.yellow } };
     row.getCell(1).font = { name: "Calibri", bold: true, color: { argb: COLORS.yellowText } };
-  } else if (r.phase.includes("FASE 4") || r.phase.includes("FASE 5")) {
+  } else if (r.phase.includes("FASE 5")) {
     row.getCell(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLORS.blue } };
     row.getCell(1).font = { name: "Calibri", bold: true, color: { argb: COLORS.blueText } };
   }
@@ -641,7 +603,6 @@ roadmap.columns = [
 ];
 roadmap.autoFilter = { from: { row: 1, column: 1 }, to: { row: ROADMAP.length + 1, column: 6 } };
 
-// ─── Save ──────────────────────────────────────────────────────────────────
 const outPath = path.join(
   "C:",
   "Users",
@@ -649,16 +610,15 @@ const outPath = path.join(
   "OneDrive",
   "Área de Trabalho",
   "Academia Digital BSOFT",
-  "Mapa-Sistema-Academia-Digital.xlsx"
+  "Mapa-Sistema-Academia-Digital-v2.xlsx"
 );
 
 wb.xlsx.writeFile(outPath).then(() => {
-  console.log(`\n✅ Excel gerado: ${outPath}`);
+  console.log(`\n✅ Excel atualizado: ${outPath}`);
   console.log(`   ${wb.worksheets.length} sheets`);
-  console.log(`   Routes: ${ROUTES.length}`);
+  console.log(`   Routes: ${ROUTES.length} (era 40 → ${ROUTES.length})`);
   console.log(`   Components: ${COMPONENTS.length}`);
-  console.log(`   Infrastructure items: ${INFRASTRUCTURE.length} + ${ENV_VARS.length} env vars`);
-  console.log(`   Pending items: ${PENDING.length}`);
-  console.log(`   Bugs fixed: ${BUGS_FIXED.length}`);
+  console.log(`   Pending items: ${PENDING.length} (foi simplificado)`);
+  console.log(`   Bugs fixed: ${BUGS_FIXED.length} (era 17 → ${BUGS_FIXED.length})`);
   console.log(`   Roadmap items: ${ROADMAP.length}`);
 });

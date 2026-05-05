@@ -1,12 +1,32 @@
-import { Settings } from "lucide-react";
+import { redirect } from "next/navigation";
+import { Save } from "lucide-react";
 import { DashboardShell, PageHeader } from "@/components/dashboard/dashboard-shell";
-import { ComingSoon } from "@/components/dashboard/coming-soon";
+import { Button } from "@/components/ui/button";
+import { getSession } from "@/lib/auth/session";
+import { prisma } from "@/lib/prisma";
+import { SettingsTabs } from "@/components/admin/settings-tabs";
 
-export const metadata = { title: "Configurações" };
+export const metadata = { title: "Configurações · White-label" };
 
 type Props = { params: { tenantSlug: string } };
 
-export default function AdminSettingsPage({ params }: Props) {
+export default async function AdminSettingsPage({ params }: Props) {
+  const session = await getSession();
+  if (!session) redirect(`/${params.tenantSlug}/auth/login`);
+
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: session.tenantId },
+    select: {
+      slug: true,
+      name: true,
+      domain: true,
+      logoUrl: true,
+      primaryColor: true,
+      accentColor: true,
+      dgertCode: true,
+    },
+  });
+
   return (
     <DashboardShell>
       <PageHeader
@@ -14,25 +34,32 @@ export default function AdminSettingsPage({ params }: Props) {
           { label: "Gestão", href: `/${params.tenantSlug}/admin` },
           { label: "Configurações" },
         ]}
-        title="Configurações"
-        description="White-label · branding · integrações · políticas DGERT"
+        title="Configurações White-label"
+        description="Branding · domínio · email · integrações · DGERT"
+        actions={
+          <Button
+            type="submit"
+            form="settings-form"
+            className="h-10 gap-1.5 bg-navy text-white hover:bg-navy/90"
+          >
+            <Save className="h-4 w-4" />
+            Guardar alterações
+          </Button>
+        }
       />
-      <ComingSoon
-        icon={Settings}
-        title="Configurações do tenant"
-        description="Painel de configuração white-label completo · cada cliente customiza a sua experiência sem mexer em código."
-        features={[
-          "Upload de logo e favicon · paleta de cores (primary + accent)",
-          "Domínio próprio (formacao.cliente.com) · DNS verification",
-          "Templates de email transacional · sender personalizado",
-          "Configurações DGERT (código de entidade, certificações ativas)",
-          "Roles e permissões granulares · workflow de aprovação",
-          "Integrações: Resend, Cloudflare R2, Google Calendar, etc.",
-        ]}
-        back={{
-          label: "Voltar ao Dashboard",
-          href: `/${params.tenantSlug}/admin/dashboard`,
-        }}
+
+      <SettingsTabs
+        tenant={
+          tenant ?? {
+            slug: params.tenantSlug,
+            name: "Tenant",
+            domain: null,
+            logoUrl: null,
+            primaryColor: "#0B2447",
+            accentColor: "#CCA823",
+            dgertCode: null,
+          }
+        }
       />
     </DashboardShell>
   );
