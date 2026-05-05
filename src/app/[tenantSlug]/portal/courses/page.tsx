@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { redirect } from "next/navigation";
 import {
   BookOpen,
   Award,
@@ -12,6 +11,7 @@ import {
 } from "lucide-react";
 import { DashboardShell, PageHeader } from "@/components/dashboard/dashboard-shell";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { SessionRequired } from "@/components/dashboard/session-required";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { cn, formatDate } from "@/lib/utils";
@@ -25,7 +25,9 @@ type Props = {
 
 export default async function PortalCoursesPage({ params, searchParams }: Props) {
   const session = await getSession();
-  if (!session) redirect(`/${params.tenantSlug}/auth/login`);
+  if (!session) {
+    return <SessionRequired tenantSlug={params.tenantSlug} title="Meus Cursos" hasBottomNav />;
+  }
 
   const trainee = await prisma.trainee.findUnique({
     where: { userId: session.userId },

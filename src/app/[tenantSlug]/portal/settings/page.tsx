@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
 import { Save } from "lucide-react";
 import { DashboardShell, PageHeader } from "@/components/dashboard/dashboard-shell";
 import { Button } from "@/components/ui/button";
+import { SessionRequired } from "@/components/dashboard/session-required";
 import { getSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { TraineeSettingsForm } from "@/components/trainee/settings-form";
@@ -12,7 +12,9 @@ type Props = { params: { tenantSlug: string } };
 
 export default async function PortalSettingsPage({ params }: Props) {
   const session = await getSession();
-  if (!session) redirect(`/${params.tenantSlug}/auth/login`);
+  if (!session) {
+    return <SessionRequired tenantSlug={params.tenantSlug} title="Configurações" hasBottomNav />;
+  }
 
   const trainee = await prisma.trainee.findUnique({
     where: { userId: session.userId },

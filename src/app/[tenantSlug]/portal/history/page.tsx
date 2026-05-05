@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { SessionRequired } from "@/components/dashboard/session-required";
 import {
   History,
   Activity,
@@ -19,7 +19,9 @@ type Props = { params: { tenantSlug: string } };
 
 export default async function PortalHistoryPage({ params }: Props) {
   const session = await getSession();
-  if (!session) redirect(`/${params.tenantSlug}/auth/login`);
+  if (!session) {
+    return <SessionRequired tenantSlug={params.tenantSlug} title="Histórico" hasBottomNav />;
+  }
 
   const trainee = await prisma.trainee.findUnique({
     where: { userId: session.userId },
