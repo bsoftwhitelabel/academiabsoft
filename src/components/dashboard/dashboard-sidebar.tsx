@@ -16,6 +16,7 @@ import {
   BarChart3,
   Activity,
   ClipboardList,
+  Shield,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ const ITEMS: Record<SidebarRole, ItemConfig[]> = {
       badge: "1.075",
     },
     { label: "Instrutores", segment: "/admin/trainers", icon: Briefcase },
+    { label: "Assinaturas", segment: "/admin/signatures", icon: Shield },
     { label: "Relatórios", segment: "/admin/reports", icon: BarChart3 },
     { label: "Configurações", segment: "/admin/settings", icon: Settings },
   ],
