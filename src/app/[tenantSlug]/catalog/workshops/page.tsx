@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { HeroSection } from "@/components/catalog/hero-section";
 import { CorporateCta } from "@/components/catalog/corporate-cta";
+import { WorkshopLeadForm } from "@/components/catalog/workshop-lead-form";
 import { Button } from "@/components/ui/button";
 import { cn, formatCurrency } from "@/lib/utils";
 import {
@@ -27,9 +28,6 @@ export const metadata = {
 };
 
 type Props = { params: { tenantSlug: string } };
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _typecheck(_p: Props) {}
 
 const PILLARS: { icon: LucideIcon; title: string; description: string }[] = [
   {
@@ -59,7 +57,7 @@ const ACCENT_RING: Record<WorkshopBlock["accent"], string> = {
   amber: "ring-amber-200 bg-amber-50 text-amber-700",
 };
 
-export default function WorkshopsPage({ params: _params }: Props) {
+export default function WorkshopsPage({ params }: Props) {
   return (
     <>
       <HeroSection
@@ -170,6 +168,58 @@ export default function WorkshopsPage({ params: _params }: Props) {
           {WORKSHOP_PROGRAMMES.map((p) => (
             <ProgrammeCard key={p.name} {...p} />
           ))}
+        </div>
+      </section>
+
+      {/* Lead capture form */}
+      <section
+        id="contact"
+        className="border-t border-border bg-surface-low/40"
+      >
+        <div className="mx-auto max-w-container px-4 py-16 md:px-8 md:py-20">
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 lg:grid-cols-[1fr_1.4fr]">
+            <header>
+              <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-gold/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-700 ring-1 ring-gold/20">
+                <Sparkles className="h-3 w-3" strokeWidth={2.75} />
+                Resposta em 48h
+              </span>
+              <h2 className="text-balance text-3xl font-bold leading-tight text-navy md:text-4xl">
+                Falamos sobre a sua equipa?
+              </h2>
+              <p className="mt-3 text-base leading-relaxed text-ink-muted">
+                Conte-nos os objetivos, prazos e contexto. Devolvemos uma
+                proposta personalizada com calendário, formadores e
+                investimento por pessoa.
+              </p>
+              <ul className="mt-6 space-y-2 text-sm">
+                <li className="flex items-start gap-2 text-ink-muted">
+                  <CheckCircle2
+                    className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600"
+                    strokeWidth={2.5}
+                  />
+                  Consultoria inicial gratuita (60 min)
+                </li>
+                <li className="flex items-start gap-2 text-ink-muted">
+                  <CheckCircle2
+                    className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600"
+                    strokeWidth={2.5}
+                  />
+                  Dossier técnico-pedagógico DGERT incluído
+                </li>
+                <li className="flex items-start gap-2 text-ink-muted">
+                  <CheckCircle2
+                    className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600"
+                    strokeWidth={2.5}
+                  />
+                  Logo da empresa nos certificados (white-label)
+                </li>
+              </ul>
+            </header>
+
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-card-elevated md:p-8">
+              <WorkshopLeadForm tenantSlug={params.tenantSlug} />
+            </div>
+          </div>
         </div>
       </section>
 
