@@ -68,6 +68,16 @@ export function LoginForm({ tenantSlug }: Props) {
       >
         Receber link mágico no email
       </Link>
+
+      <p className="pt-2 text-center text-xs text-ink-muted">
+        Ainda não tens conta?{" "}
+        <Link
+          href={`/${tenantSlug}/onboarding`}
+          className="font-bold text-blue-600 hover:underline"
+        >
+          Inscreve-te aqui
+        </Link>
+      </p>
     </form>
   );
 }
