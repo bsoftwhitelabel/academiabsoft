@@ -11,6 +11,7 @@ import {
   Clock4,
   PauseCircle,
   ListFilter,
+  FileDown,
 } from "lucide-react";
 import { DashboardShell, PageHeader } from "@/components/dashboard/dashboard-shell";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -280,14 +281,17 @@ function TurmaCard({
       </div>
 
       {/* CTA */}
-      <div className="mt-auto flex items-center justify-between border-t border-border pt-4">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-subtle">
-          {turma.modality === "PRESENCIAL"
-            ? "Presencial"
-            : turma.modality === "ELEARNING"
-            ? "E-learning"
-            : "Híbrido"}
-        </div>
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-4">
+        <a
+          href={`/api/pdf/dossie-dgert/${turma.id}`}
+          target="_blank"
+          rel="noopener"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-navy transition-colors hover:border-navy/30 hover:bg-surface-low"
+          title="Descarregar dossier DGERT completo"
+        >
+          <FileDown className="h-3.5 w-3.5" />
+          Dossier
+        </a>
         {targetSession ? (
           <Link
             href={`/${tenantSlug}/trainer/sessions/${targetSession.id}/attendance`}
