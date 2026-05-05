@@ -450,7 +450,7 @@ function HandoverPdf() {
             <View style={s.coverMetaRow}>
               <Text style={s.coverMetaLabel}>Estado</Text>
               <Text style={s.coverMetaValue}>
-                5 fases concluídas · 7 fases bloqueadas a aguardar input externo
+                10 fases concluídas · 3 em standby · 4 a aguardar input externo
               </Text>
             </View>
           </View>
@@ -458,7 +458,7 @@ function HandoverPdf() {
 
         <Text style={s.coverFooter}>
           Documento gerado automaticamente a partir do estado actual do
-          repositório · build verde · 44 rotas activas em produção
+          repositório · build verde · 50+ rotas activas em produção
         </Text>
       </Page>
 
@@ -715,79 +715,156 @@ function HandoverPdf() {
         <PageFooter />
       </Page>
 
+      {/* ─────── 3 (cont). Sprint mais recente ─────── */}
+      <Page size="A4" style={s.page}>
+        <Text style={s.h1Kicker}>SECAO 03 (CONT.)</Text>
+        <Text style={s.h1}>Etapas Concluídas — sprint mais recente</Text>
+
+        <PhaseHead num="4.1" title="Custom domain (UI)" status="done" />
+        <Bullet>
+          /admin/settings → aba Domínio com input + validação (formato + uniqueness)
+        </Bullet>
+        <Bullet>
+          Server action updateTenantDomain persiste em tenant.domain
+        </Bullet>
+        <Bullet>
+          Botão Copiar valor CNAME · passos numerados para ativação
+        </Bullet>
+        <Bullet>
+          Middleware já resolvia custom domains automaticamente — UI agora persiste
+        </Bullet>
+
+        <PhaseHead num="4.2" title="Captação leads workshops" status="done" />
+        <Bullet>
+          /catalog/workshops#contact: form completo (nome, email, empresa,
+          telefone, dimensão, programa, mensagem)
+        </Bullet>
+        <Bullet>
+          Server action submitWorkshopLead com validação + email HTML rico
+        </Bullet>
+        <Bullet>
+          Fallback console em dev (RESEND_API_KEY ausente) · pronto para produção
+        </Bullet>
+
+        <PhaseHead num="4.3" title="Onboarding wizard" status="done" />
+        <Bullet>
+          /onboarding (público) com 3 passos: dados pessoais · empresa · confirmação
+        </Bullet>
+        <Bullet>
+          Cria User + Trainee + (opcional) Entity novo · envia magic-link
+        </Bullet>
+        <Bullet>
+          Empresas novas ficam isActive=false · admin valida em /admin/entities
+        </Bullet>
+
+        <PhaseHead num="A" title="Admin entity approval" status="done" />
+        <Bullet>
+          /admin/entities com filtros (pendentes/ativas/todas)
+        </Bullet>
+        <Bullet>
+          Server actions approveEntity + rejectEntity (com motivo · audit trail)
+        </Bullet>
+        <Bullet>
+          Notificação no sino quando há empresas pendentes
+        </Bullet>
+
+        <PhaseHead num="B" title="Catalog público real" status="done" />
+        <Bullet>
+          /catalog: lista cursos isPublic+ACTIVE com filtros area+search via Prisma
+        </Bullet>
+        <Bullet>
+          /catalog/[slug]: course + modules + upcoming editions + related (todos reais)
+        </Bullet>
+        <Bullet>
+          CTA "Inscrever-me" agora aponta para /onboarding (fecha o ciclo)
+        </Bullet>
+
+        <PhaseHead num="C" title="PDFs DGERT reais" status="done" />
+        <Bullet>
+          /api/pdf/ficha-inscricao/[traineeId]: trainee + tenant + último enrollment
+        </Bullet>
+        <Bullet>
+          /api/pdf/folha-presencas/[sessionId]: trainees inscritos + status real
+        </Bullet>
+        <Bullet>
+          /api/pdf/ata-reuniao/[trainingActionId]: métricas reais (sessões, attendance)
+        </Bullet>
+
+        <PhaseHead num="5.x" title="Billing preview" status="done" />
+        <Bullet>
+          /admin/billing com 4 plan tiers + usage real-time
+        </Bullet>
+        <Bullet>
+          getTenantUsage() de Prisma · getTenantPlan() lê tier de tenant.settings JSON
+        </Bullet>
+        <Bullet>
+          Sem migration ainda — Stripe Connect entra após sign-off comercial
+        </Bullet>
+
+        <PageFooter />
+      </Page>
+
       {/* ─────── 4. Etapas Pendentes ─────── */}
       <Page size="A4" style={s.page}>
         <SectionTitle
           index="04"
-          title="Etapas Pendentes"
-          lead="As fases abaixo estão prontas a executar — cada uma tem o requisito externo claramente identificado. Todas têm desenho técnico decidido."
+          title="Etapas em Standby & Bloqueadas"
+          lead="As fases 3.7/3.8/3.9 foram colocadas em STANDBY a pedido do cliente. As restantes aguardam input externo (DNS, conteúdo, regras comerciais)."
         />
 
         <PhaseHead
           num="3.7"
           title="Cron certificados pós-turma"
-          status="blocked"
+          status="pending"
         />
         <Text style={s.pMuted}>
           Geração e envio automático de certificado DGERT por e-mail quando uma
-          turma muda para status COMPLETED.
+          turma muda para status COMPLETED. STANDBY a pedido do cliente.
         </Text>
         <BulletStrong
-          label="Bloqueio"
-          body="Depende da Fase 3.9 (Resend) estar activa"
+          label="Standby"
+          body="Despriorizado nesta sprint · depende de 3.9"
         />
         <BulletStrong
           label="Plano técnico"
           body="Cron Vercel diário (vercel.json) → query trainingAction.status=COMPLETED não certificada → renderiza PDF → envia via Resend → marca certificate.deliveredAt"
         />
-        <BulletStrong
-          label="Esforço estimado"
-          body="1-2 dias após Resend pronto"
-        />
 
         <PhaseHead
           num="3.8"
           title="Cloudflare R2 (storage assinaturas)"
-          status="blocked"
+          status="pending"
         />
         <Text style={s.pMuted}>
           Atualmente as assinaturas digitais ficam em memória (datauri PNG).
-          Para produção real precisam ser persistidas em object storage com URLs
-          assinadas.
+          Para produção real precisam ser persistidas em object storage. STANDBY
+          a pedido do cliente.
         </Text>
         <BulletStrong
-          label="Bloqueio externo"
-          body="Acesso à conta Cloudflare + bucket R2 + Access Key + Secret + endpoint URL"
+          label="Standby"
+          body="Despriorizado nesta sprint"
         />
         <BulletStrong
           label="Plano técnico"
-          body="@aws-sdk/client-s3 (R2 é S3-compatible) → upload PNG no checkin → guardar imageUrl no Signature.imageUrl → URLs com expiração"
-        />
-        <BulletStrong
-          label="Esforço estimado"
-          body="1 dia após keys disponíveis"
+          body="@aws-sdk/client-s3 (R2 é S3-compatible) → upload PNG no checkin → guardar imageUrl no Signature.imageUrl"
         />
 
         <PhaseHead
           num="3.9"
           title="Resend API + DNS verification"
-          status="blocked"
+          status="pending"
         />
         <Text style={s.pMuted}>
-          Magic-links de formando dependem de envio real de e-mail.
-          Atualmente em desenvolvimento são impressos no console.
+          Magic-links de formando dependem de envio real de e-mail. Em
+          desenvolvimento são impressos no console. STANDBY a pedido do cliente.
         </Text>
         <BulletStrong
-          label="Bloqueio externo"
-          body="Conta Resend → API key → verificação DNS do domínio (SPF, DKIM)"
+          label="Standby"
+          body="Despriorizado nesta sprint"
         />
         <BulletStrong
           label="Plano técnico"
           body="RESEND_API_KEY no Vercel → registar domínio → ajustar from address em src/lib/auth/email.ts"
-        />
-        <BulletStrong
-          label="Esforço estimado"
-          body="Algumas horas (já implementado, só falta API key)"
         />
 
         <PageFooter />
@@ -796,11 +873,11 @@ function HandoverPdf() {
       {/* ─────── 4. Etapas Pendentes (cont) ─────── */}
       <Page size="A4" style={s.page}>
         <Text style={s.h1Kicker}>SECAO 04 (CONT.)</Text>
-        <Text style={s.h1}>Etapas Pendentes</Text>
+        <Text style={s.h1}>Etapas Pendentes — bloqueios externos</Text>
 
         <PhaseHead
           num="4.1"
-          title="Custom domain (white-label)"
+          title="Custom domain — ativação DNS"
           status="blocked"
         />
         <Text style={s.pMuted}>
@@ -822,68 +899,56 @@ function HandoverPdf() {
 
         <PhaseHead
           num="4.2"
-          title="Catálogo Workshops Saúde Mental"
+          title="Workshops — conteúdo final (40 reais)"
           status="blocked"
         />
         <Text style={s.pMuted}>
-          40 workshops em 9 blocos temáticos para a Oporto Forte. É o produto
-          comercial mais urgente (pedido directo da Nadja).
+          A landing /catalog/workshops e o formulário de leads já estão LIVE
+          com mock content. Falta substituir o mock por 40 workshops reais.
         </Text>
         <BulletStrong
           label="Bloqueio externo"
           body="Conteúdo Nadja: nome, descrição, duração, formador, preço por workshop"
         />
         <BulletStrong
-          label="Plano técnico"
-          body="Tabela WorkshopBlock (1-N com Course) → seed dos 40 workshops → página /catalog/workshops já criada"
-        />
-        <BulletStrong
-          label="Esforço estimado"
-          body="2-3 dias após receber conteúdo estruturado"
+          label="Como aplicar"
+          body="Editar src/lib/workshops-data.ts → substituir os 9 blocks/40 workshops → commit + deploy. Forma é trivial, só falta input."
         />
 
         <PhaseHead
-          num="4.3"
-          title="Onboarding fluxo formando-empresa"
+          num="5.x final"
+          title="Faturação Stripe Connect"
           status="blocked"
         />
         <Text style={s.pMuted}>
-          Quando um formando se inscreve, precisa ser ligado a uma
-          entidade-cliente. Regras de auto-aprovação versus aprovação HR.
+          O preview /admin/billing está pronto com 4 plan tiers e usage real.
+          Falta integrar pagamentos reais e split JV.
         </Text>
         <BulletStrong
           label="Bloqueio externo"
-          body="Definição de regras com Nadja: auto-criar empresa? quem aprova? limites?"
+          body="Regras comerciais BSoft × Oporto Forte (split %, planos finais, ciclo de fatura)"
         />
         <BulletStrong
           label="Plano técnico"
-          body="Wizard 3 passos: dados pessoais → empresa (nova/existente) → confirmação → magic-link"
-        />
-        <BulletStrong
-          label="Esforço estimado"
-          body="3-4 dias após regras definidas"
-        />
-
-        <PhaseHead
-          num="5.x"
-          title="Faturação / billing por tenant"
-          status="blocked"
-        />
-        <Text style={s.pMuted}>
-          Joint Venture entre BSoft e Oporto Forte exige split automático de
-          receitas. Cada tenant tem o seu plano e contador de uso.
-        </Text>
-        <BulletStrong
-          label="Bloqueio externo"
-          body="Regras comerciais ainda em negociação BSoft × Oporto Forte"
-        />
-        <BulletStrong
-          label="Plano técnico"
-          body="Schema TenantPlan + UsageCounter → integração Stripe Connect (split payments) → painel /admin/billing"
+          body="Schema TenantPlan + UsageCounter → integração Stripe Connect (split payments) → webhook → painel /admin/billing já existe"
         />
         <BulletStrong
           label="Esforço estimado"
           body="1-2 semanas após regras definidas"
+        />
+
+        <PhaseHead
+          num="—"
+          title="Migrar /trainer/sessions/[id]/attendance de mock"
+          status="pending"
+        />
+        <Text style={s.pMuted}>
+          Página crítica do trainer (~32 kB) ainda usa MOCK_ATTENDANCE_SESSION.
+          Próximo grande deliverable interno.
+        </Text>
+        <BulletStrong
+          label="Esforço estimado"
+          body="2-3 dias (página mais complexa do projeto)"
         />
 
         <PageFooter />
