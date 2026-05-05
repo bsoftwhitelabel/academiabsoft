@@ -9,6 +9,13 @@ const nextConfig = {
       { protocol: "https", hostname: "ui-avatars.com" },
     ],
   },
+  experimental: {
+    // Keep client-side router cache fresher for snappier back/forward + repeat navigations.
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
+  },
 };
 
 export default nextConfig;

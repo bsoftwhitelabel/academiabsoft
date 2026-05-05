@@ -38,7 +38,7 @@ export function roleHomePath(
   switch (role) {
     case "ADMIN":
     case "OWNER":
-      return `/${tenantSlug}/admin/courses`;
+      return `/${tenantSlug}/admin/dashboard`;
     case "TRAINER":
       return `/${tenantSlug}/trainer/sessions`;
     case "TRAINEE":
