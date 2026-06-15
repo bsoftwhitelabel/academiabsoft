@@ -1,0 +1,1 @@
+{"root":["./src/env.ts","./src/index.ts","./src/routes/pdf.ts","./src/services/puppeteer.ts","./src/services/storage.ts","./src/services/supabase.ts","./src/templates/checklist.ts","./src/templates/registry.ts"],"version":"5.9.3"}

@@ -1,0 +1,24 @@
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import { QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { BrowserRouter } from "react-router-dom"
+import { Toaster } from "sonner"
+import { App } from "./App"
+import { TenantThemeProvider } from "@/components/layout/TenantThemeProvider"
+import { queryClient } from "@/lib/query-client"
+import "@/styles/globals.css"
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <TenantThemeProvider>
+          <App />
+        </TenantThemeProvider>
+      </BrowserRouter>
+      <Toaster richColors position="top-right" />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  </StrictMode>
+)
