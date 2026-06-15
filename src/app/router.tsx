@@ -1,7 +1,9 @@
 import { Navigate, type RouteObject } from "react-router-dom"
 import { AdminLayout } from "@/components/layout/AdminLayout"
 import { TrainerLayout } from "@/components/layout/TrainerLayout"
+import { PublicLayout } from "@/components/layout/PublicLayout"
 import { LoginPage } from "@/pages/auth/LoginPage"
+import { PublicRespondPage } from "@/pages/public/PublicRespondPage"
 import { TrainerDashboardPage } from "@/pages/trainer/TrainerDashboardPage"
 import { TrainerSessionsPage } from "@/pages/trainer/TrainerSessionsPage"
 import { TrainerSessionDetailPage } from "@/pages/trainer/TrainerSessionDetailPage"
@@ -69,6 +71,13 @@ export const routes: RouteObject[] = [
       { path: "sessions", element: <TrainerSessionsPage /> },
       { path: "sessions/:sessionId", element: <TrainerSessionDetailPage /> },
       { path: "materials", element: <TrainerMaterialsPage /> },
+    ],
+  },
+  {
+    path: "q",
+    element: <PublicLayout />,
+    children: [
+      { path: ":token", element: <PublicRespondPage /> },
     ],
   },
   { path: "*", element: <Navigate to="/admin/dashboard" replace /> },
