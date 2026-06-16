@@ -3,6 +3,7 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { env } from "./env.js"
 import { pdfRoute } from "./routes/pdf.js"
+import { questionnaireRoutes } from "./routes/questionnaires.js"
 
 const app = new Hono()
 
@@ -20,6 +21,7 @@ app.get("/health", (c) =>
 )
 
 app.route("/api/pdf", pdfRoute)
+app.route("/api/q", questionnaireRoutes)
 
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`[api] Hono a ouvir em http://localhost:${info.port}`)
