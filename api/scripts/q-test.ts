@@ -18,6 +18,7 @@ loadEnv({ path: resolve(here, "..", ".env") })
 //   npx tsx api/scripts/q-test.ts verify
 //   npx tsx api/scripts/q-test.ts cleanup
 //   npx tsx api/scripts/q-test.ts list-questions    # mostra IDs e tipos
+//   npx tsx api/scripts/q-test.ts find-action       # top 3 actions com >=2 formandos
 
 const TEST_RESPONSE_ID = "test_resp_e2e_1"
 const TEST_TOKEN = "TEST_TOKEN_E2E_2026A"
@@ -101,6 +102,38 @@ async function verify() {
   console.log(JSON.stringify({ ok: true, op: "verify", answers: count }))
 }
 
+async function findAction() {
+  const { data: enrolls, error } = await sb
+    .from("enrollments")
+    .select("trainingActionId, status")
+    .neq("status", "CANCELLED")
+    .limit(2000)
+  if (error) {
+    console.log(JSON.stringify({ ok: false, op: "find-action", error: error.message }))
+    process.exit(1)
+  }
+  const counts = new Map<string, number>()
+  for (const e of enrolls ?? []) {
+    counts.set(e.trainingActionId, (counts.get(e.trainingActionId) ?? 0) + 1)
+  }
+  const ranked = [...counts.entries()]
+    .filter(([, n]) => n >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+  const actionIds = ranked.map(([id]) => id)
+  const { data: actions, error: aErr } = await sb
+    .from("training_actions")
+    .select("id, actionCode")
+    .in("id", actionIds)
+  if (aErr) {
+    console.log(JSON.stringify({ ok: false, op: "find-action", error: aErr.message }))
+    process.exit(1)
+  }
+  const byId = new Map((actions ?? []).map((a: { id: string; actionCode: string }) => [a.id, a.actionCode]))
+  const out = ranked.map(([id, n]) => ({ id, actionCode: byId.get(id) ?? "?", enrollments: n }))
+  console.log(JSON.stringify({ ok: true, op: "find-action", top: out }, null, 2))
+}
+
 async function cleanup() {
   const { error: e1 } = await sb
     .from("questionnaire_answers")
@@ -134,7 +167,12 @@ switch (op) {
   case "list-questions":
     await listQuestions()
     break
+  case "find-action":
+    await findAction()
+    break
   default:
-    console.error("Usage: q-test.ts <setup|verify|cleanup|list-questions>")
+    console.error(
+      "Usage: q-test.ts <setup|verify|cleanup|list-questions|find-action>"
+    )
     process.exit(1)
 }
