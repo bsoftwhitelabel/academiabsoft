@@ -7,10 +7,17 @@ import { app, isServerless } from "./app.js"
 import { env, isProduction } from "./env.js"
 
 // Em Node local: monta a rota PDF dinamicamente (mantém puppeteer fora do
-// bundle quando o app for empacotado pelo Vercel).
+// bundle quando o app for empacotado pelo Vercel). Puppeteer está em
+// optionalDependencies, portanto pode não estar instalado: try/catch
+// permite arrancar mesmo sem ele.
 if (!isServerless) {
-  const { pdfRoute } = await import("./routes/pdf.js")
-  app.route("/api/pdf", pdfRoute)
+  try {
+    const { pdfRoute } = await import("./routes/pdf.js")
+    app.route("/api/pdf", pdfRoute)
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.warn(`[api] PDF route desactivada: ${msg}`)
+  }
 }
 
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
