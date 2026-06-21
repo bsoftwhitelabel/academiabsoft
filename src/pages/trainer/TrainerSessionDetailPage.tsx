@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { ArrowLeft, FileText, Lock, Pencil, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
+import { API_BASE } from "@/lib/api-base"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -61,10 +62,9 @@ export function TrainerSessionDetailPage() {
     setPrinting(true)
     const t = toast.loading("A gerar o Plano de Sessão...")
     try {
-      const base = import.meta.env.VITE_PDF_API_URL ?? "http://localhost:3001"
       // planoSessao é gerado por /generate-mass (1 PDF por sessão da acção);
       // filtramos o item desta sessão.
-      const res = await fetch(`${base}/api/pdf/generate-mass`, {
+      const res = await fetch(`${API_BASE}/api/pdf/generate-mass`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ templateCode: "planoSessao", actionId }),

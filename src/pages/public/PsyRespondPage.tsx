@@ -43,7 +43,7 @@ type GetResponse =
   | { status: "expired" }
   | { status: "closed" }
 
-const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? ""
+import { API_BASE } from "@/lib/api-base"
 
 async function fetchPublic(token: string): Promise<GetResponse> {
   const r = await fetch(`${API_BASE}/api/q/psy/${encodeURIComponent(token)}`)
