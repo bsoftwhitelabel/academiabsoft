@@ -8,8 +8,7 @@
   "functions": {
     "api/index.ts": {
       "runtime": "@vercel/node@5.1.13",
-      "maxDuration": 30,
-      "memory": 1024
+      "maxDuration": 30
     }
   },
   "rewrites": [
