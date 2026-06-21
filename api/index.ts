@@ -9,5 +9,7 @@
 import { handle } from "hono/vercel"
 import { app } from "./src/app.js"
 
-export const config = { runtime: "nodejs" }
+// Sem `export const config = { runtime }`: Vercel @vercel/node 5+ deprecou
+// a string "nodejs" e a sintaxe nova mudaria semântica. Default é Node.js
+// Serverless Function, que é o que queremos.
 export default handle(app)
