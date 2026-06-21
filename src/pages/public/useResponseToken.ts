@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { API_BASE } from "@/lib/api-base"
+import { getApiBase } from "@/lib/api-base"
 
 export type Question = {
   id: string
@@ -41,7 +41,7 @@ export class ResponseTokenError extends Error {
 }
 
 async function fetchResponse(token: string): Promise<ResponseTokenData> {
-  const r = await fetch(`${API_BASE}/api/q/${encodeURIComponent(token)}`, {
+  const r = await fetch(`${getApiBase()}/api/q/${encodeURIComponent(token)}`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   })
@@ -81,7 +81,7 @@ async function submitResponse(
   token: string,
   answers: AnswerPayload[]
 ): Promise<{ ok: true; respondedAt: string }> {
-  const r = await fetch(`${API_BASE}/api/q/${encodeURIComponent(token)}`, {
+  const r = await fetch(`${getApiBase()}/api/q/${encodeURIComponent(token)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ answers }),

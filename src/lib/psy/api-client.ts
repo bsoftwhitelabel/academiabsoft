@@ -6,7 +6,7 @@
  * tabelas estão lock para o role authenticated; só o backend lê via service
  * role e devolve agregados).
  */
-import { API_BASE } from "@/lib/api-base"
+import { getApiBase } from "@/lib/api-base"
 import { supabase } from "@/lib/supabase"
 
 export class PsyApiError extends Error {
@@ -44,7 +44,7 @@ async function psyFetchOnce<T>(
   jwt: string,
   init?: RequestInit
 ): Promise<{ ok: true; data: T } | { ok: false; status: number; body: unknown }> {
-  const r = await fetch(`${API_BASE}/api/psy${path}`, {
+  const r = await fetch(`${getApiBase()}/api/psy${path}`, {
     ...init,
     headers: {
       ...(init?.headers ?? {}),

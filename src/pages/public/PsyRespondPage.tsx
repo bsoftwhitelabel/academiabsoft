@@ -43,10 +43,10 @@ type GetResponse =
   | { status: "expired" }
   | { status: "closed" }
 
-import { API_BASE } from "@/lib/api-base"
+import { getApiBase } from "@/lib/api-base"
 
 async function fetchPublic(token: string): Promise<GetResponse> {
-  const r = await fetch(`${API_BASE}/api/q/psy/${encodeURIComponent(token)}`)
+  const r = await fetch(`${getApiBase()}/api/q/psy/${encodeURIComponent(token)}`)
   if (r.status === 410) {
     const b = (await r.json().catch(() => ({}))) as GetResponse
     return b
@@ -62,7 +62,7 @@ async function submitPublic(
   token: string,
   answers: Array<{ questionId: string; valor: number }>
 ) {
-  const r = await fetch(`${API_BASE}/api/q/psy/${encodeURIComponent(token)}`, {
+  const r = await fetch(`${getApiBase()}/api/q/psy/${encodeURIComponent(token)}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ answers }),
