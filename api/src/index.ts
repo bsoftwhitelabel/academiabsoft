@@ -25,9 +25,9 @@ serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(
     `[api] CORS: NODE_ENV=${env.NODE_ENV} APP_ORIGIN=${env.APP_ORIGIN || "(vazio)"} CORS_ORIGIN=${env.CORS_ORIGIN}; em dev aceita qualquer http://localhost:<porta>`
   )
-  if (isProduction && !env.APP_ORIGIN) {
+  if (isProduction && !env.APP_ORIGIN && !process.env.VERCEL_URL) {
     console.warn(
-      "[api] AVISO: NODE_ENV=production mas APP_ORIGIN não definido. CORS vai aceitar apenas CORS_ORIGIN."
+      "[api] AVISO: NODE_ENV=production mas APP_ORIGIN/VERCEL_URL não definidos. CORS limitado a CORS_ORIGIN."
     )
   }
 })
