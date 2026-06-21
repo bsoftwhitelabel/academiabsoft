@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs"
-import { DGERT_LOGO_BASE64 } from "../src/templates/_shared.js"
-import { withPage } from "../src/services/puppeteer.js"
+import { DGERT_LOGO_BASE64 } from "../_src/templates/_shared.js"
+import { withPage } from "../_src/services/puppeteer.js"
 
 const html = `<body style="margin:0;background:#fff;padding:20px">
 <div style="width:520px;height:113px;border:1px solid #ddd">

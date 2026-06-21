@@ -26,7 +26,7 @@ import cuid from "cuid"
 import {
   buildPsyAnswerRows,
   buildPsyResponseRow,
-} from "../src/psy/builders.js"
+} from "../_src/psy/builders.js"
 
 const here = dirname(fileURLToPath(import.meta.url))
 loadEnv({ path: resolve(here, "..", ".env") })

@@ -32,3 +32,4 @@ api/.env
 # Build artefacts locais
 dist/
 api/dist/
+api/index.js

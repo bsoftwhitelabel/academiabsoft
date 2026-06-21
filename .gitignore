@@ -41,6 +41,9 @@ auth.json
 # Outputs de teste de geração de PDFs
 api/_out/
 
+# Compilado local do handler Vercel (gerado por tsc acidental)
+api/index.js
+
 # Outputs de scripts internos (audits, planos de import, snapshots BD)
 # Podem conter PII e dados internos. Sempre prefixados com _ em api/scripts/.
 api/scripts/_*.json
