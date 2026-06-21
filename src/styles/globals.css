@@ -4,32 +4,65 @@
 
 @layer base {
   :root {
-    /* Default theme — Oporto Forte */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 217 91% 35%;            /* Navy Oporto Forte */
+    --primary: 215 73% 16%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222 47% 11%;
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
-    --accent: 43 74% 49%;               /* Gold Oporto Forte */
+    --accent: 210 40% 96%;
     --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 38%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 100%;
+    --info: 217 91% 55%;
+    --info-foreground: 0 0% 100%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 217 91% 35%;
+    --ring: 215 73% 16%;
     --radius: 0.5rem;
 
     /* Tokens White Label próprios */
     --tenant-logo-url: url("/oportoforte-logo.svg");
     --tenant-name: "Grupo Oporto Forte";
     --color-surface: #f8fafc;
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 214 32% 91%;
+    --card: 222 40% 11%;
+    --card-foreground: 214 32% 91%;
+    --popover: 222 40% 11%;
+    --popover-foreground: 214 32% 91%;
+    --primary: 218 44% 41%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 214 32% 91%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 20%;
+    --accent-foreground: 214 32% 91%;
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 65% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 222 47% 11%;
+    --info: 217 91% 65%;
+    --info-foreground: 222 47% 11%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 218 44% 41%;
   }
 
   /* Exemplo: tema HumanaMente */
@@ -42,4 +75,6 @@
 @layer base {
   * { @apply border-border; }
   body { @apply bg-background text-foreground antialiased; }
+  table { font-variant-numeric: tabular-nums; }
+  .tabular-nums { font-variant-numeric: tabular-nums; }
 }

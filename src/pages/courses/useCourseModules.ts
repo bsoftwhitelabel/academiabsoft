@@ -30,6 +30,8 @@ export function useCourse(courseId: string | undefined) {
   return useQuery({
     queryKey: ["course", courseId],
     enabled: !!courseId,
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async (): Promise<Course | null> => {
       const { data, error } = await supabase
         .from("courses")
@@ -58,6 +60,39 @@ export function useCourseActionCount(courseId: string | undefined) {
   })
 }
 
+/**
+ * Recalcula course.durationHours como soma das durações dos módulos.
+ * Persiste na BD. Chama-se sempre que um módulo muda.
+ */
+export async function recalcCourseDuration(courseId: string): Promise<number> {
+  const { data, error } = await supabase
+    .from("course_modules")
+    .select("durationHours")
+    .eq("courseId", courseId)
+  if (error) throw error
+  const total = (data ?? []).reduce(
+    (s: number, m: { durationHours: number | null }) =>
+      s + (Number(m.durationHours) || 0),
+    0
+  )
+  const { error: upErr } = await supabase
+    .from("courses")
+    .update({ durationHours: total })
+    .eq("id", courseId)
+  if (upErr) throw upErr
+  return total
+}
+
+function invalidateAfterModuleChange(
+  qc: ReturnType<typeof useQueryClient>,
+  courseId: string
+) {
+  qc.invalidateQueries({ queryKey: ["course_modules", courseId] })
+  qc.invalidateQueries({ queryKey: ["course", courseId] })
+  qc.invalidateQueries({ queryKey: ["courses"] })
+  qc.invalidateQueries({ queryKey: ["course-aggregates"] })
+}
+
 export function useUpsertCourseModule() {
   const qc = useQueryClient()
   return useMutation({
@@ -78,41 +113,45 @@ export function useUpsertCourseModule() {
           .insert(withId({ ...args.input, courseId: args.courseId }))
         if (error) throw error
       }
+      await recalcCourseDuration(args.courseId)
+      return args.courseId
     },
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["course_modules"] }),
+    onSuccess: (courseId) => invalidateAfterModuleChange(qc, courseId),
   })
 }
 
 export function useDeleteCourseModule() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (args: { id: string; courseId: string }) => {
       const { error } = await supabase
         .from("course_modules")
         .delete()
-        .eq("id", id)
+        .eq("id", args.id)
       if (error) throw error
+      await recalcCourseDuration(args.courseId)
+      return args.courseId
     },
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["course_modules"] }),
+    onSuccess: (courseId) => invalidateAfterModuleChange(qc, courseId),
   })
 }
 
-/** Persiste a nova ordem (drag reorder). Atualiza coluna order 1..N. */
+/** Persiste a nova ordem (drag reorder / setas). Atualiza order 1..N. */
 export function useReorderCourseModules() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (orderedIds: string[]) => {
-      for (let i = 0; i < orderedIds.length; i++) {
+    mutationFn: async (args: { orderedIds: string[]; courseId: string }) => {
+      for (let i = 0; i < args.orderedIds.length; i++) {
         const { error } = await supabase
           .from("course_modules")
           .update({ order: i + 1 })
-          .eq("id", orderedIds[i])
+          .eq("id", args.orderedIds[i])
         if (error) throw error
       }
+      // Reorder não altera a duração total mas mantém o invariante.
+      await recalcCourseDuration(args.courseId)
+      return args.courseId
     },
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["course_modules"] }),
+    onSuccess: (courseId) => invalidateAfterModuleChange(qc, courseId),
   })
 }

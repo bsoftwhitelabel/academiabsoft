@@ -1,0 +1,1221 @@
+{
+  "instrument": {
+    "version": "OFG-Mario-2026-06 (provisório)",
+    "etiqueta_validacao": "em validação",
+    "fonte": "Planilha Riscos Psicossociais OFG, Mário",
+    "nota": "Cortes, impactos e direções NÃO validados clinicamente. Inversão é por pergunta."
+  },
+  "thresholds": {
+    "classificacao": {
+      "favoravel_ate": 25,
+      "atencao_ate": 50,
+      "risco_ate": 75,
+      "acima": "Risco Elevado"
+    },
+    "igrp": {
+      "z1": 2,
+      "z2": 3,
+      "z3": 4
+    },
+    "criticidade": {
+      "p3_min": 4,
+      "p2_min": 8,
+      "p1_min": 12
+    }
+  },
+  "dimensions": [
+    {
+      "code": "DIM01",
+      "ordem": 1,
+      "nome": "Exigências Quantitativas",
+      "grupo": "Essencial",
+      "bloco": "Exigências do Trabalho",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q1",
+        "Q2",
+        "Q3"
+      ]
+    },
+    {
+      "code": "DIM02",
+      "ordem": 2,
+      "nome": "Ritmo de Trabalho",
+      "grupo": "Essencial",
+      "bloco": "Exigências do Trabalho",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q4",
+        "Q5",
+        "Q6"
+      ]
+    },
+    {
+      "code": "DIM03",
+      "ordem": 3,
+      "nome": "Exigências Cognitivas",
+      "grupo": "Essencial",
+      "bloco": "Exigências do Trabalho",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q7",
+        "Q8",
+        "Q9"
+      ]
+    },
+    {
+      "code": "DIM04",
+      "ordem": 4,
+      "nome": "Exigências Emocionais",
+      "grupo": "Essencial",
+      "bloco": "Exigências do Trabalho",
+      "tipo": "Risco",
+      "impacto": 4,
+      "questions": [
+        "Q10",
+        "Q11",
+        "Q12"
+      ]
+    },
+    {
+      "code": "DIM05",
+      "ordem": 5,
+      "nome": "Ocultação de Emoções",
+      "grupo": "Essencial",
+      "bloco": "Exigências do Trabalho",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q13",
+        "Q14",
+        "Q15"
+      ]
+    },
+    {
+      "code": "DIM06",
+      "ordem": 6,
+      "nome": "Influência no Trabalho",
+      "grupo": "Essencial",
+      "bloco": "Organização e Conteúdo do Trabalho",
+      "tipo": "Protetiva",
+      "impacto": 2,
+      "questions": [
+        "Q16",
+        "Q17",
+        "Q18"
+      ]
+    },
+    {
+      "code": "DIM07",
+      "ordem": 7,
+      "nome": "Possibilidades de Desenvolvimento",
+      "grupo": "Essencial",
+      "bloco": "Organização e Conteúdo do Trabalho",
+      "tipo": "Protetiva",
+      "impacto": 2,
+      "questions": [
+        "Q19",
+        "Q20",
+        "Q21"
+      ]
+    },
+    {
+      "code": "DIM08",
+      "ordem": 8,
+      "nome": "Significado do Trabalho",
+      "grupo": "Essencial",
+      "bloco": "Organização e Conteúdo do Trabalho",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q22",
+        "Q23",
+        "Q24"
+      ]
+    },
+    {
+      "code": "DIM09",
+      "ordem": 9,
+      "nome": "Compromisso com a Organização",
+      "grupo": "Essencial",
+      "bloco": "Organização e Conteúdo do Trabalho",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q25",
+        "Q26",
+        "Q27"
+      ]
+    },
+    {
+      "code": "DIM10",
+      "ordem": 10,
+      "nome": "Previsibilidade",
+      "grupo": "Essencial",
+      "bloco": "Liderança e Gestão",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q28",
+        "Q29",
+        "Q30"
+      ]
+    },
+    {
+      "code": "DIM11",
+      "ordem": 11,
+      "nome": "Reconhecimento",
+      "grupo": "Essencial",
+      "bloco": "Liderança e Gestão",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q31",
+        "Q32",
+        "Q33"
+      ]
+    },
+    {
+      "code": "DIM12",
+      "ordem": 12,
+      "nome": "Clareza de Papel",
+      "grupo": "Essencial",
+      "bloco": "Liderança e Gestão",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q34",
+        "Q35",
+        "Q36"
+      ]
+    },
+    {
+      "code": "DIM13",
+      "ordem": 13,
+      "nome": "Conflito de Papel",
+      "grupo": "Essencial",
+      "bloco": "Liderança e Gestão",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q37",
+        "Q38",
+        "Q39"
+      ]
+    },
+    {
+      "code": "DIM14",
+      "ordem": 14,
+      "nome": "Qualidade da Liderança",
+      "grupo": "Essencial",
+      "bloco": "Liderança e Gestão",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q40",
+        "Q41",
+        "Q42"
+      ]
+    },
+    {
+      "code": "DIM15",
+      "ordem": 15,
+      "nome": "Apoio Social dos Superiores",
+      "grupo": "Essencial",
+      "bloco": "Liderança e Gestão",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q43",
+        "Q44",
+        "Q45"
+      ]
+    },
+    {
+      "code": "DIM16",
+      "ordem": 16,
+      "nome": "Apoio Social dos Colegas",
+      "grupo": "Essencial",
+      "bloco": "Liderança e Gestão",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q46",
+        "Q47",
+        "Q48"
+      ]
+    },
+    {
+      "code": "DIM17",
+      "ordem": 17,
+      "nome": "Justiça Organizacional",
+      "grupo": "Essencial",
+      "bloco": "Relações e Ambiente de Trabalho",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q49",
+        "Q50",
+        "Q51"
+      ]
+    },
+    {
+      "code": "DIM18",
+      "ordem": 18,
+      "nome": "Comunidade Social no Trabalho",
+      "grupo": "Essencial",
+      "bloco": "Relações e Ambiente de Trabalho",
+      "tipo": "Protetiva",
+      "impacto": 2,
+      "questions": [
+        "Q52",
+        "Q53",
+        "Q54"
+      ]
+    },
+    {
+      "code": "DIM19",
+      "ordem": 19,
+      "nome": "Insegurança no Trabalho",
+      "grupo": "Essencial",
+      "bloco": "Relações e Ambiente de Trabalho",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q55",
+        "Q56",
+        "Q57"
+      ]
+    },
+    {
+      "code": "DIM20",
+      "ordem": 20,
+      "nome": "Conflito Trabalho-Família",
+      "grupo": "Essencial",
+      "bloco": "Relações e Ambiente de Trabalho",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q58",
+        "Q59",
+        "Q60"
+      ]
+    },
+    {
+      "code": "DIM21",
+      "ordem": 21,
+      "nome": "Saúde Geral",
+      "grupo": "Essencial",
+      "bloco": "Saúde e Bem-Estar",
+      "tipo": "Protetiva",
+      "impacto": 4,
+      "questions": [
+        "Q61",
+        "Q62",
+        "Q63"
+      ]
+    },
+    {
+      "code": "DIM22",
+      "ordem": 22,
+      "nome": "Estresse",
+      "grupo": "Essencial",
+      "bloco": "Saúde e Bem-Estar",
+      "tipo": "Risco",
+      "impacto": 4,
+      "questions": [
+        "Q64",
+        "Q65",
+        "Q66"
+      ]
+    },
+    {
+      "code": "DIM23",
+      "ordem": 23,
+      "nome": "Burnout / Exaustão",
+      "grupo": "Essencial",
+      "bloco": "Saúde e Bem-Estar",
+      "tipo": "Risco",
+      "impacto": 4,
+      "questions": [
+        "Q67",
+        "Q68",
+        "Q69"
+      ]
+    },
+    {
+      "code": "DIM24",
+      "ordem": 24,
+      "nome": "Controle sobre o Tempo de Trabalho",
+      "grupo": "Essencial",
+      "bloco": "Saúde e Bem-Estar",
+      "tipo": "Protetiva",
+      "impacto": 2,
+      "questions": [
+        "Q70",
+        "Q71",
+        "Q72"
+      ]
+    },
+    {
+      "code": "DIM25",
+      "ordem": 25,
+      "nome": "Satisfação no Trabalho",
+      "grupo": "Complementar",
+      "bloco": "Dimensões Complementares",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q73",
+        "Q74",
+        "Q75"
+      ]
+    },
+    {
+      "code": "DIM26",
+      "ordem": 26,
+      "nome": "Confiança Vertical",
+      "grupo": "Complementar",
+      "bloco": "Dimensões Complementares",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q76",
+        "Q77",
+        "Q78"
+      ]
+    },
+    {
+      "code": "DIM27",
+      "ordem": 27,
+      "nome": "Confiança Horizontal",
+      "grupo": "Complementar",
+      "bloco": "Dimensões Complementares",
+      "tipo": "Protetiva",
+      "impacto": 3,
+      "questions": [
+        "Q79",
+        "Q80",
+        "Q81"
+      ]
+    },
+    {
+      "code": "DIM28",
+      "ordem": 28,
+      "nome": "Conflitos Interpessoais",
+      "grupo": "Complementar",
+      "bloco": "Dimensões Complementares",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q82",
+        "Q83",
+        "Q84"
+      ]
+    },
+    {
+      "code": "DIM29",
+      "ordem": 29,
+      "nome": "Exposição a Comportamentos Ofensivos",
+      "grupo": "Complementar",
+      "bloco": "Dimensões Complementares",
+      "tipo": "Risco",
+      "impacto": 4,
+      "questions": [
+        "Q85",
+        "Q86",
+        "Q87"
+      ]
+    },
+    {
+      "code": "DIM30",
+      "ordem": 30,
+      "nome": "Assédio Moral",
+      "grupo": "Complementar II",
+      "bloco": "Dimensões Complementares II",
+      "tipo": "Risco",
+      "impacto": 4,
+      "questions": [
+        "Q88",
+        "Q89",
+        "Q90"
+      ]
+    },
+    {
+      "code": "DIM31",
+      "ordem": 31,
+      "nome": "Assédio Sexual",
+      "grupo": "Complementar II",
+      "bloco": "Dimensões Complementares II",
+      "tipo": "Risco",
+      "impacto": 4,
+      "questions": [
+        "Q91",
+        "Q92",
+        "Q93"
+      ]
+    },
+    {
+      "code": "DIM32",
+      "ordem": 32,
+      "nome": "Discriminação",
+      "grupo": "Complementar II",
+      "bloco": "Dimensões Complementares II",
+      "tipo": "Risco",
+      "impacto": 4,
+      "questions": [
+        "Q94",
+        "Q95",
+        "Q96"
+      ]
+    },
+    {
+      "code": "DIM33",
+      "ordem": 33,
+      "nome": "Sobrecarga por Metas",
+      "grupo": "Complementar II",
+      "bloco": "Dimensões Complementares II",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q97",
+        "Q98",
+        "Q99"
+      ]
+    },
+    {
+      "code": "DIM34",
+      "ordem": 34,
+      "nome": "Disponibilidade Permanente e Hiperconectividade",
+      "grupo": "Complementar II",
+      "bloco": "Dimensões Complementares II",
+      "tipo": "Risco",
+      "impacto": 3,
+      "questions": [
+        "Q100",
+        "Q101",
+        "Q102"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "code": "Q1",
+      "direcao": "Direta",
+      "texto": "O volume de trabalho é maior do que o tempo disponível para realizá-lo?",
+      "ordem": 1,
+      "dimension": "DIM01"
+    },
+    {
+      "code": "Q2",
+      "direcao": "Direta",
+      "texto": "Você precisa trabalhar rapidamente para cumprir suas tarefas?",
+      "ordem": 2,
+      "dimension": "DIM01"
+    },
+    {
+      "code": "Q3",
+      "direcao": "Direta",
+      "texto": "Com frequência leva trabalho para além da jornada normal?",
+      "ordem": 3,
+      "dimension": "DIM01"
+    },
+    {
+      "code": "Q4",
+      "direcao": "Direta",
+      "texto": "Seu ritmo de trabalho é intenso durante a maior parte do dia?",
+      "ordem": 4,
+      "dimension": "DIM02"
+    },
+    {
+      "code": "Q5",
+      "direcao": "Inversa",
+      "texto": "Você consegue fazer pausas quando necessário?",
+      "ordem": 5,
+      "dimension": "DIM02"
+    },
+    {
+      "code": "Q6",
+      "direcao": "Direta",
+      "texto": "A pressão por velocidade interfere na qualidade do trabalho?",
+      "ordem": 6,
+      "dimension": "DIM02"
+    },
+    {
+      "code": "Q7",
+      "direcao": "Direta",
+      "texto": "Seu trabalho exige alto nível de concentração?",
+      "ordem": 7,
+      "dimension": "DIM03"
+    },
+    {
+      "code": "Q8",
+      "direcao": "Direta",
+      "texto": "Você toma decisões importantes frequentemente?",
+      "ordem": 8,
+      "dimension": "DIM03"
+    },
+    {
+      "code": "Q9",
+      "direcao": "Direta",
+      "texto": "Precisa lidar simultaneamente com muitas informações?",
+      "ordem": 9,
+      "dimension": "DIM03"
+    },
+    {
+      "code": "Q10",
+      "direcao": "Direta",
+      "texto": "Seu trabalho envolve lidar com situações emocionalmente difíceis?",
+      "ordem": 10,
+      "dimension": "DIM04"
+    },
+    {
+      "code": "Q11",
+      "direcao": "Direta",
+      "texto": "Você precisa controlar suas emoções para realizar seu trabalho?",
+      "ordem": 11,
+      "dimension": "DIM04"
+    },
+    {
+      "code": "Q12",
+      "direcao": "Direta",
+      "texto": "O contato com sofrimento ou problemas de outras pessoas faz parte da sua rotina?",
+      "ordem": 12,
+      "dimension": "DIM04"
+    },
+    {
+      "code": "Q13",
+      "direcao": "Direta",
+      "texto": "Você precisa esconder o que sente durante o trabalho?",
+      "ordem": 13,
+      "dimension": "DIM05"
+    },
+    {
+      "code": "Q14",
+      "direcao": "Direta",
+      "texto": "Demonstrar emoções sinceras é desencorajado em seu ambiente de trabalho?",
+      "ordem": 14,
+      "dimension": "DIM05"
+    },
+    {
+      "code": "Q15",
+      "direcao": "Direta",
+      "texto": "Você sente que precisa aparentar emoções diferentes das que realmente sente?",
+      "ordem": 15,
+      "dimension": "DIM05"
+    },
+    {
+      "code": "Q16",
+      "direcao": "Inversa",
+      "texto": "Você pode decidir como executar suas atividades?",
+      "ordem": 16,
+      "dimension": "DIM06"
+    },
+    {
+      "code": "Q17",
+      "direcao": "Inversa",
+      "texto": "Sua opinião é considerada nas decisões que afetam seu trabalho?",
+      "ordem": 17,
+      "dimension": "DIM06"
+    },
+    {
+      "code": "Q18",
+      "direcao": "Inversa",
+      "texto": "Você possui autonomia para organizar suas tarefas?",
+      "ordem": 18,
+      "dimension": "DIM06"
+    },
+    {
+      "code": "Q19",
+      "direcao": "Inversa",
+      "texto": "Você aprende coisas novas em seu trabalho?",
+      "ordem": 19,
+      "dimension": "DIM07"
+    },
+    {
+      "code": "Q20",
+      "direcao": "Inversa",
+      "texto": "Existem oportunidades de desenvolvimento profissional?",
+      "ordem": 20,
+      "dimension": "DIM07"
+    },
+    {
+      "code": "Q21",
+      "direcao": "Inversa",
+      "texto": "Você percebe crescimento em suas competências?",
+      "ordem": 21,
+      "dimension": "DIM07"
+    },
+    {
+      "code": "Q22",
+      "direcao": "Inversa",
+      "texto": "Você considera seu trabalho importante?",
+      "ordem": 22,
+      "dimension": "DIM08"
+    },
+    {
+      "code": "Q23",
+      "direcao": "Inversa",
+      "texto": "Seu trabalho tem significado para você?",
+      "ordem": 23,
+      "dimension": "DIM08"
+    },
+    {
+      "code": "Q24",
+      "direcao": "Inversa",
+      "texto": "Você percebe utilidade no que faz?",
+      "ordem": 24,
+      "dimension": "DIM08"
+    },
+    {
+      "code": "Q25",
+      "direcao": "Inversa",
+      "texto": "Você sente orgulho de trabalhar nesta organização?",
+      "ordem": 25,
+      "dimension": "DIM09"
+    },
+    {
+      "code": "Q26",
+      "direcao": "Inversa",
+      "texto": "Recomendaria esta organização para outras pessoas?",
+      "ordem": 26,
+      "dimension": "DIM09"
+    },
+    {
+      "code": "Q27",
+      "direcao": "Inversa",
+      "texto": "Você se sente comprometido com os objetivos da organização?",
+      "ordem": 27,
+      "dimension": "DIM09"
+    },
+    {
+      "code": "Q28",
+      "direcao": "Inversa",
+      "texto": "Você recebe informações antecipadas sobre mudanças importantes?",
+      "ordem": 28,
+      "dimension": "DIM10"
+    },
+    {
+      "code": "Q29",
+      "direcao": "Inversa",
+      "texto": "As decisões relevantes são comunicadas adequadamente?",
+      "ordem": 29,
+      "dimension": "DIM10"
+    },
+    {
+      "code": "Q30",
+      "direcao": "Inversa",
+      "texto": "Você sabe o que esperar da organização em relação ao seu trabalho?",
+      "ordem": 30,
+      "dimension": "DIM10"
+    },
+    {
+      "code": "Q31",
+      "direcao": "Inversa",
+      "texto": "Seu esforço é reconhecido?",
+      "ordem": 31,
+      "dimension": "DIM11"
+    },
+    {
+      "code": "Q32",
+      "direcao": "Inversa",
+      "texto": "Seu trabalho é valorizado?",
+      "ordem": 32,
+      "dimension": "DIM11"
+    },
+    {
+      "code": "Q33",
+      "direcao": "Inversa",
+      "texto": "Você recebe retorno positivo quando apresenta bons resultados?",
+      "ordem": 33,
+      "dimension": "DIM11"
+    },
+    {
+      "code": "Q34",
+      "direcao": "Inversa",
+      "texto": "Você sabe exatamente quais são suas responsabilidades?",
+      "ordem": 34,
+      "dimension": "DIM12"
+    },
+    {
+      "code": "Q35",
+      "direcao": "Inversa",
+      "texto": "Os objetivos do seu trabalho são claros?",
+      "ordem": 35,
+      "dimension": "DIM12"
+    },
+    {
+      "code": "Q36",
+      "direcao": "Inversa",
+      "texto": "As expectativas em relação ao seu desempenho são bem definidas?",
+      "ordem": 36,
+      "dimension": "DIM12"
+    },
+    {
+      "code": "Q37",
+      "direcao": "Direta",
+      "texto": "Você recebe orientações contraditórias?",
+      "ordem": 37,
+      "dimension": "DIM13"
+    },
+    {
+      "code": "Q38",
+      "direcao": "Direta",
+      "texto": "Existem conflitos entre as demandas recebidas?",
+      "ordem": 38,
+      "dimension": "DIM13"
+    },
+    {
+      "code": "Q39",
+      "direcao": "Direta",
+      "texto": "Você precisa executar tarefas incompatíveis entre si?",
+      "ordem": 39,
+      "dimension": "DIM13"
+    },
+    {
+      "code": "Q40",
+      "direcao": "Inversa",
+      "texto": "Sua liderança demonstra competência para conduzir a equipe?",
+      "ordem": 40,
+      "dimension": "DIM14"
+    },
+    {
+      "code": "Q41",
+      "direcao": "Inversa",
+      "texto": "Sua liderança organiza adequadamente o trabalho?",
+      "ordem": 41,
+      "dimension": "DIM14"
+    },
+    {
+      "code": "Q42",
+      "direcao": "Inversa",
+      "texto": "Sua liderança trata as pessoas com respeito?",
+      "ordem": 42,
+      "dimension": "DIM14"
+    },
+    {
+      "code": "Q43",
+      "direcao": "Inversa",
+      "texto": "Sua liderança oferece apoio quando necessário?",
+      "ordem": 43,
+      "dimension": "DIM15"
+    },
+    {
+      "code": "Q44",
+      "direcao": "Inversa",
+      "texto": "Você consegue conversar com sua liderança sobre dificuldades?",
+      "ordem": 44,
+      "dimension": "DIM15"
+    },
+    {
+      "code": "Q45",
+      "direcao": "Inversa",
+      "texto": "Sua liderança demonstra preocupação com o bem-estar da equipe?",
+      "ordem": 45,
+      "dimension": "DIM15"
+    },
+    {
+      "code": "Q46",
+      "direcao": "Inversa",
+      "texto": "Seus colegas ajudam quando necessário?",
+      "ordem": 46,
+      "dimension": "DIM16"
+    },
+    {
+      "code": "Q47",
+      "direcao": "Inversa",
+      "texto": "Existe colaboração entre as pessoas da equipe?",
+      "ordem": 47,
+      "dimension": "DIM16"
+    },
+    {
+      "code": "Q48",
+      "direcao": "Inversa",
+      "texto": "Você pode contar com seus colegas em momentos difíceis?",
+      "ordem": 48,
+      "dimension": "DIM16"
+    },
+    {
+      "code": "Q49",
+      "direcao": "Inversa",
+      "texto": "As decisões da organização são tomadas de forma justa?",
+      "ordem": 49,
+      "dimension": "DIM17"
+    },
+    {
+      "code": "Q50",
+      "direcao": "Inversa",
+      "texto": "Os critérios utilizados são transparentes?",
+      "ordem": 50,
+      "dimension": "DIM17"
+    },
+    {
+      "code": "Q51",
+      "direcao": "Inversa",
+      "texto": "As pessoas são tratadas de forma equitativa?",
+      "ordem": 51,
+      "dimension": "DIM17"
+    },
+    {
+      "code": "Q52",
+      "direcao": "Inversa",
+      "texto": "Existe espírito de equipe em seu ambiente de trabalho?",
+      "ordem": 52,
+      "dimension": "DIM18"
+    },
+    {
+      "code": "Q53",
+      "direcao": "Inversa",
+      "texto": "As pessoas se tratam com respeito?",
+      "ordem": 53,
+      "dimension": "DIM18"
+    },
+    {
+      "code": "Q54",
+      "direcao": "Inversa",
+      "texto": "Você sente que faz parte do grupo?",
+      "ordem": 54,
+      "dimension": "DIM18"
+    },
+    {
+      "code": "Q55",
+      "direcao": "Direta",
+      "texto": "Você teme perder o emprego?",
+      "ordem": 55,
+      "dimension": "DIM19"
+    },
+    {
+      "code": "Q56",
+      "direcao": "Direta",
+      "texto": "Você teme mudanças que possam prejudicar sua situação profissional?",
+      "ordem": 56,
+      "dimension": "DIM19"
+    },
+    {
+      "code": "Q57",
+      "direcao": "Direta",
+      "texto": "Sente incerteza em relação ao seu futuro na organização?",
+      "ordem": 57,
+      "dimension": "DIM19"
+    },
+    {
+      "code": "Q58",
+      "direcao": "Direta",
+      "texto": "O trabalho interfere negativamente em sua vida familiar?",
+      "ordem": 58,
+      "dimension": "DIM20"
+    },
+    {
+      "code": "Q59",
+      "direcao": "Direta",
+      "texto": "O trabalho dificulta momentos de lazer e descanso?",
+      "ordem": 59,
+      "dimension": "DIM20"
+    },
+    {
+      "code": "Q60",
+      "direcao": "Direta",
+      "texto": "Você leva preocupações do trabalho para casa?",
+      "ordem": 60,
+      "dimension": "DIM20"
+    },
+    {
+      "code": "Q61",
+      "direcao": "Inversa",
+      "texto": "Como você avalia sua saúde atualmente?",
+      "ordem": 61,
+      "dimension": "DIM21"
+    },
+    {
+      "code": "Q62",
+      "direcao": "Inversa",
+      "texto": "Você sente disposição física para suas atividades?",
+      "ordem": 62,
+      "dimension": "DIM21"
+    },
+    {
+      "code": "Q63",
+      "direcao": "Inversa",
+      "texto": "Considera sua saúde satisfatória?",
+      "ordem": 63,
+      "dimension": "DIM21"
+    },
+    {
+      "code": "Q64",
+      "direcao": "Direta",
+      "texto": "Você sente pressão excessiva no trabalho?",
+      "ordem": 64,
+      "dimension": "DIM22"
+    },
+    {
+      "code": "Q65",
+      "direcao": "Direta",
+      "texto": "Você se sente tenso devido às atividades profissionais?",
+      "ordem": 65,
+      "dimension": "DIM22"
+    },
+    {
+      "code": "Q66",
+      "direcao": "Direta",
+      "texto": "O trabalho gera preocupação constante?",
+      "ordem": 66,
+      "dimension": "DIM22"
+    },
+    {
+      "code": "Q67",
+      "direcao": "Direta",
+      "texto": "Você se sente emocionalmente esgotado pelo trabalho?",
+      "ordem": 67,
+      "dimension": "DIM23"
+    },
+    {
+      "code": "Q68",
+      "direcao": "Direta",
+      "texto": "Costuma terminar o dia sem energia?",
+      "ordem": 68,
+      "dimension": "DIM23"
+    },
+    {
+      "code": "Q69",
+      "direcao": "Direta",
+      "texto": "Sente desgaste físico ou mental relacionado ao trabalho?",
+      "ordem": 69,
+      "dimension": "DIM23"
+    },
+    {
+      "code": "Q70",
+      "direcao": "Inversa",
+      "texto": "Você consegue decidir quando fazer pausas?",
+      "ordem": 70,
+      "dimension": "DIM24"
+    },
+    {
+      "code": "Q71",
+      "direcao": "Inversa",
+      "texto": "Você tem flexibilidade para organizar seus horários?",
+      "ordem": 71,
+      "dimension": "DIM24"
+    },
+    {
+      "code": "Q72",
+      "direcao": "Inversa",
+      "texto": "Você consegue conciliar suas necessidades pessoais com seus horários de trabalho?",
+      "ordem": 72,
+      "dimension": "DIM24"
+    },
+    {
+      "code": "Q73",
+      "direcao": "Inversa",
+      "texto": "Você está satisfeito com seu trabalho?",
+      "ordem": 73,
+      "dimension": "DIM25"
+    },
+    {
+      "code": "Q74",
+      "direcao": "Inversa",
+      "texto": "Sente-se motivado para realizar suas atividades?",
+      "ordem": 74,
+      "dimension": "DIM25"
+    },
+    {
+      "code": "Q75",
+      "direcao": "Inversa",
+      "texto": "Considera positiva sua experiência profissional nesta organização?",
+      "ordem": 75,
+      "dimension": "DIM25"
+    },
+    {
+      "code": "Q76",
+      "direcao": "Inversa",
+      "texto": "Você confia nas informações fornecidas pela liderança?",
+      "ordem": 76,
+      "dimension": "DIM26"
+    },
+    {
+      "code": "Q77",
+      "direcao": "Inversa",
+      "texto": "A liderança age de forma coerente com o que comunica?",
+      "ordem": 77,
+      "dimension": "DIM26"
+    },
+    {
+      "code": "Q78",
+      "direcao": "Inversa",
+      "texto": "Existe confiança entre gestores e trabalhadores?",
+      "ordem": 78,
+      "dimension": "DIM26"
+    },
+    {
+      "code": "Q79",
+      "direcao": "Inversa",
+      "texto": "Existe confiança entre os colegas de trabalho?",
+      "ordem": 79,
+      "dimension": "DIM27"
+    },
+    {
+      "code": "Q80",
+      "direcao": "Inversa",
+      "texto": "As pessoas cumprem os compromissos assumidos?",
+      "ordem": 80,
+      "dimension": "DIM27"
+    },
+    {
+      "code": "Q81",
+      "direcao": "Inversa",
+      "texto": "Há abertura para diálogo entre os colegas?",
+      "ordem": 81,
+      "dimension": "DIM27"
+    },
+    {
+      "code": "Q82",
+      "direcao": "Direta",
+      "texto": "Os conflitos prejudicam o ambiente de trabalho?",
+      "ordem": 82,
+      "dimension": "DIM28"
+    },
+    {
+      "code": "Q83",
+      "direcao": "Direta",
+      "texto": "Existem comportamentos hostis entre colegas?",
+      "ordem": 83,
+      "dimension": "DIM28"
+    },
+    {
+      "code": "Q84",
+      "direcao": "Direta",
+      "texto": "As divergências costumam ser tratadas de forma inadequada?",
+      "ordem": 84,
+      "dimension": "DIM28"
+    },
+    {
+      "code": "Q85",
+      "direcao": "Direta",
+      "texto": "Você já foi tratado de forma humilhante ou desrespeitosa no trabalho?",
+      "ordem": 85,
+      "dimension": "DIM29"
+    },
+    {
+      "code": "Q86",
+      "direcao": "Direta",
+      "texto": "Já presenciou situações de desrespeito envolvendo colegas?",
+      "ordem": 86,
+      "dimension": "DIM29"
+    },
+    {
+      "code": "Q87",
+      "direcao": "Direta",
+      "texto": "Já se sentiu intimidado ou constrangido no ambiente de trabalho?",
+      "ordem": 87,
+      "dimension": "DIM29"
+    },
+    {
+      "code": "Q88",
+      "direcao": "Direta",
+      "texto": "Você já se sentiu humilhado de forma repetitiva no trabalho?",
+      "ordem": 88,
+      "dimension": "DIM30"
+    },
+    {
+      "code": "Q89",
+      "direcao": "Direta",
+      "texto": "Já foi alvo de críticas excessivas ou desproporcionais?",
+      "ordem": 89,
+      "dimension": "DIM30"
+    },
+    {
+      "code": "Q90",
+      "direcao": "Direta",
+      "texto": "Já recebeu tratamento desrespeitoso de forma recorrente?",
+      "ordem": 90,
+      "dimension": "DIM30"
+    },
+    {
+      "code": "Q91",
+      "direcao": "Direta",
+      "texto": "Já recebeu insinuações, comentários ou convites indesejados de natureza sexual?",
+      "ordem": 91,
+      "dimension": "DIM31"
+    },
+    {
+      "code": "Q92",
+      "direcao": "Direta",
+      "texto": "Já presenciou situações de assédio sexual na organização?",
+      "ordem": 92,
+      "dimension": "DIM31"
+    },
+    {
+      "code": "Q93",
+      "direcao": "Inversa",
+      "texto": "Você sabe como denunciar esse tipo de situação?",
+      "ordem": 93,
+      "dimension": "DIM31"
+    },
+    {
+      "code": "Q94",
+      "direcao": "Direta",
+      "texto": "Já presenciou situações de discriminação no ambiente de trabalho?",
+      "ordem": 94,
+      "dimension": "DIM32"
+    },
+    {
+      "code": "Q95",
+      "direcao": "Inversa",
+      "texto": "Todas as pessoas recebem oportunidades justas na organização?",
+      "ordem": 95,
+      "dimension": "DIM32"
+    },
+    {
+      "code": "Q96",
+      "direcao": "Inversa",
+      "texto": "A organização combate práticas discriminatórias?",
+      "ordem": 96,
+      "dimension": "DIM32"
+    },
+    {
+      "code": "Q97",
+      "direcao": "Inversa",
+      "texto": "As metas são compatíveis com os recursos disponíveis?",
+      "ordem": 97,
+      "dimension": "DIM33"
+    },
+    {
+      "code": "Q98",
+      "direcao": "Direta",
+      "texto": "Você sente pressão excessiva para atingir resultados?",
+      "ordem": 98,
+      "dimension": "DIM33"
+    },
+    {
+      "code": "Q99",
+      "direcao": "Direta",
+      "texto": "O não atingimento das metas gera medo ou insegurança?",
+      "ordem": 99,
+      "dimension": "DIM33"
+    },
+    {
+      "code": "Q100",
+      "direcao": "Direta",
+      "texto": "Você recebe demandas fora do horário normal de trabalho?",
+      "ordem": 100,
+      "dimension": "DIM34"
+    },
+    {
+      "code": "Q101",
+      "direcao": "Direta",
+      "texto": "Sente-se obrigado a responder mensagens fora da jornada?",
+      "ordem": 101,
+      "dimension": "DIM34"
+    },
+    {
+      "code": "Q102",
+      "direcao": "Direta",
+      "texto": "O trabalho invade períodos de descanso, férias ou momentos familiares?",
+      "ordem": 102,
+      "dimension": "DIM34"
+    }
+  ],
+  "action_plans_status": "VAZIO: a planilha tinha fórmulas SWITCH partidas (#NAME?). Textos a redigir à parte."
+}

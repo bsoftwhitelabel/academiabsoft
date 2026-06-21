@@ -10,6 +10,7 @@ import { TrainerSessionDetailPage } from "@/pages/trainer/TrainerSessionDetailPa
 import { TrainerMaterialsPage } from "@/pages/trainer/TrainerMaterialsPage"
 import { DashboardPage } from "@/pages/dashboard/DashboardPage"
 import { TrainingPlansPage } from "@/pages/training-plans/TrainingPlansPage"
+import { TrainingPlanEditPage } from "@/pages/training-plans/TrainingPlanEditPage"
 import { CoursesPage } from "@/pages/courses/CoursesPage"
 import { CourseDetailPage } from "@/pages/courses/CourseDetailPage"
 import { TrainingActionsPage } from "@/pages/actions/TrainingActionsPage"
@@ -27,6 +28,12 @@ import { RoomsPage } from "@/pages/management/RoomsPage"
 import { AnalyticsPage } from "@/pages/analytics/AnalyticsPage"
 import { ApprovalsPage } from "@/pages/approvals/ApprovalsPage"
 import { ProjectsPage } from "@/pages/projects/ProjectsPage"
+import { SaudeMentalIndex } from "@/pages/saude-mental/SaudeMentalIndex"
+import { CampanhasPage } from "@/pages/saude-mental/CampanhasPage"
+import { NovaCampanhaPage } from "@/pages/saude-mental/NovaCampanhaPage"
+import { CampanhaDetalhePage } from "@/pages/saude-mental/CampanhaDetalhePage"
+import { InstrumentoPage } from "@/pages/saude-mental/InstrumentoPage"
+import { PsyRespondPage } from "@/pages/public/PsyRespondPage"
 
 // AdminLayout chama useAuth(), que redireciona para /login sem sessão.
 // É o gate de proteção de todas as rotas /admin.
@@ -40,6 +47,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: "dashboard", element: <DashboardPage /> },
       { path: "training-plans", element: <TrainingPlansPage /> },
+      { path: "training-plans/:id", element: <TrainingPlanEditPage /> },
       { path: "courses", element: <CoursesPage /> },
       { path: "courses/:id", element: <CourseDetailPage /> },
       { path: "actions", element: <TrainingActionsPage /> },
@@ -60,6 +68,11 @@ export const routes: RouteObject[] = [
       { path: "analytics", element: <AnalyticsPage /> },
       { path: "approvals", element: <ApprovalsPage /> },
       { path: "projects", element: <ProjectsPage /> },
+      { path: "saude-mental", element: <SaudeMentalIndex /> },
+      { path: "saude-mental/campanhas", element: <CampanhasPage /> },
+      { path: "saude-mental/campanhas/nova", element: <NovaCampanhaPage /> },
+      { path: "saude-mental/campanhas/:id", element: <CampanhaDetalhePage /> },
+      { path: "saude-mental/instrumento", element: <InstrumentoPage /> },
     ],
   },
   {
@@ -78,6 +91,7 @@ export const routes: RouteObject[] = [
     element: <PublicLayout />,
     children: [
       { path: ":token", element: <PublicRespondPage /> },
+      { path: "psy/:token", element: <PsyRespondPage /> },
     ],
   },
   { path: "*", element: <Navigate to="/admin/dashboard" replace /> },

@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test:psy": "tsx --test src/psy/motor.test.ts src/psy/tokens.test.ts src/psy/anonimato.test.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@types/archiver": "^7.0.0",
     "@types/node": "^22.10.2",
+    "postgres": "^3.4.9",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

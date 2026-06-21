@@ -1,26 +1,30 @@
 import { NavLink, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard,
-  CalendarCheck,
-  BookOpen,
+  CalendarClock,
+  FileText,
+  Settings,
+  HelpCircle,
   LogOut,
   type LucideIcon,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { useAuthStore } from "@/stores/auth.store"
+import { useTenantStore } from "@/stores/tenant.store"
 import { signOut } from "@/hooks/useAuth"
 
 const items = [
   { to: "/trainer/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/trainer/sessions", label: "Minhas Sessões", icon: CalendarCheck },
-  { to: "/trainer/materials", label: "Materiais", icon: BookOpen },
+  { to: "/trainer/sessions", label: "Minhas Sessões", icon: CalendarClock },
+  { to: "/trainer/materials", label: "Materiais", icon: FileText },
 ]
 
 export function TrainerSidebar() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
+  const tenant = useTenantStore((s) => s.tenant)
 
   async function handleLogout() {
     try {
@@ -35,41 +39,56 @@ export function TrainerSidebar() {
 
   const email = user?.email ?? ""
   const initial = email.charAt(0).toUpperCase() || "?"
+  const platformName = tenant?.name ?? "Academia Digital"
+  const tenantInitials =
+    platformName
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w.charAt(0).toUpperCase())
+      .join("") || "AD"
 
   return (
-    <aside className="w-60 shrink-0 bg-background border-r flex flex-col h-screen">
-      <div className="h-16 flex items-center px-6 border-b shrink-0">
-        <h1 className="text-lg font-semibold">Portal do Formador</h1>
+    <aside className="w-[248px] shrink-0 bg-card border-r border-border flex flex-col h-screen">
+      <div className="h-16 flex items-center gap-3 px-5 border-b border-border shrink-0">
+        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary text-sm font-semibold">
+          {tenantInitials}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold leading-tight truncate">
+            {platformName}
+          </p>
+          <p className="text-[11px] text-muted-foreground leading-tight">
+            Portal do Formador
+          </p>
+        </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5">
         {items.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-foreground hover:bg-muted"
-              )
-            }
-          >
-            <Item icon={item.icon} label={item.label} />
-          </NavLink>
+          <SidebarItem key={item.to} {...item} />
         ))}
       </nav>
 
-      <div className="border-t p-3 shrink-0">
+      <div className="border-t border-border px-2 py-2 space-y-0.5 shrink-0">
+        <SidebarAction
+          icon={Settings}
+          label="Configurações"
+          onClick={() => toast.info("Configurações em desenvolvimento")}
+        />
+        <SidebarAction
+          icon={HelpCircle}
+          label="Suporte"
+          onClick={() => toast.info("Suporte em desenvolvimento")}
+        />
+      </div>
+
+      <div className="border-t border-border px-3 py-3 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
             {initial}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">
-              {email || "Utilizador"}
-            </p>
+            <p className="text-sm font-medium truncate">{email || "Utilizador"}</p>
             <p className="text-xs text-muted-foreground">Formador</p>
           </div>
           <button
@@ -86,11 +105,50 @@ export function TrainerSidebar() {
   )
 }
 
-function Item({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+function SidebarItem({
+  to,
+  label,
+  icon: Icon,
+}: {
+  to: string
+  label: string
+  icon: LucideIcon
+}) {
   return (
-    <>
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center gap-3 rounded-md text-sm transition px-3 py-2",
+          isActive
+            ? "bg-muted text-primary font-medium border-l-2 border-primary pl-[10px]"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        )
+      }
+    >
       <Icon className="h-4 w-4 shrink-0" />
       <span>{label}</span>
-    </>
+    </NavLink>
+  )
+}
+
+function SidebarAction({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: LucideIcon
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full flex items-center gap-3 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition px-3 py-2"
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span>{label}</span>
+    </button>
   )
 }

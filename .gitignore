@@ -40,3 +40,7 @@ auth.json
 
 # Outputs de teste de geração de PDFs
 api/_out/
+
+# Outputs de scripts internos (audits, planos de import, snapshots BD)
+# Podem conter PII e dados internos. Sempre prefixados com _ em api/scripts/.
+api/scripts/_*.json

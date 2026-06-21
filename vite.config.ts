@@ -12,5 +12,14 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    proxy: {
+      // Em dev, /api/* passa pelo Vite e é encaminhado para Hono em :3001.
+      // Frontend chama caminhos relativos /api/...; o browser nunca vê outra
+      // origem, eliminando o preflight CORS em dev.
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+    },
   },
 })

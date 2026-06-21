@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "build:api": "npm --prefix api run build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:psy": "npm --prefix api run test:psy"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -119,13 +119,19 @@ export function DataTable<TData, TValue>({
         )}
       </div>
 
-      <div className="rounded-md border bg-background">
-        <Table>
-          <TableHeader>
+      <div className="rounded-md border border-border bg-card overflow-hidden">
+        <Table className="tabular-nums">
+          <TableHeader className="sticky top-0 z-[1] bg-muted">
             {table.getHeaderGroups().map((group) => (
-              <TableRow key={group.id}>
+              <TableRow
+                key={group.id}
+                className="border-b border-border hover:bg-muted"
+              >
                 {group.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className="h-10 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -137,12 +143,15 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody className="divide-y divide-border">
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  className="h-9 hover:bg-muted/50 border-0"
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="py-1.5">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

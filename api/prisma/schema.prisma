@@ -1,0 +1,247 @@
+// ============================================================================
+// schema.prisma — DOCUMENTAÇÃO (não correr `prisma migrate`).
+// ============================================================================
+//
+// Este ficheiro existe como documentação dos models. A SOURCE OF TRUTH do
+// schema está nas migrações SQL em `docs/migrations/v{N}_*.sql`, aplicadas
+// manualmente no Supabase SQL Editor.
+//
+// NÃO correr `prisma migrate dev` nem `prisma migrate deploy` neste projecto.
+// O cliente Prisma, se vier a ser usado, é gerado só para tipos TS via
+// `prisma generate`.
+//
+// ESTADO ACTUAL: este ficheiro contém APENAS os models `psy_*` (módulo
+// Saúde Mental, riscos psicossociais NR-1 Modelo A, migração v11). Os
+// outros 30+ models existentes na BD (tenants, users, trainees, courses,
+// training_actions, questionnaires, etc.) ainda NÃO estão reconciliados
+// aqui. Adicionar incrementalmente.
+//
+// DATABASE_URL fica em api/.env (gitignored), nunca no código.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Módulo Saúde Mental — Riscos Psicossociais (NR-1 Modelo A)
+// Migração: docs/migrations/v11_psy_riscos_psicossociais.sql
+//
+// HARDENING aplicado pela v11 (NÃO representável em Prisma, documentado aqui):
+//
+//   1. CHECK constraint: psy_dispatch_tokens.token >= 32 caracteres.
+//   2. Trigger BEFORE INSERT psy_responses_trunc_submetido_em: trunca
+//      submetidoEm à hora (date_trunc('hour', NEW."submetidoEm")).
+//   3. Trigger BEFORE INSERT OR UPDATE psy_dispatch_tokens_trunc_usado_em:
+//      trunca usadoEm à hora.
+//   4. REVOKE INSERT, UPDATE, DELETE ON psy_responses, psy_answers FROM
+//      authenticated. Escritas só via SERVICE_ROLE_KEY no backend.
+//
+// HARDENING aplicado pela v12 (reforço do lock para SELECT):
+//
+//   5. REVOKE SELECT ON psy_responses, psy_answers, psy_dispatch_tokens
+//      FROM authenticated. O cliente NUNCA lê estas tabelas directamente.
+//      Apenas o backend (service role) lê, agrega e expõe agregados via
+//      /api/psy/campaigns/:id/agregados, sempre com gating N>=5.
+//   6. DROP POLICY de quaisquer policies para authenticated nestas três
+//      tabelas (defesa em profundidade).
+//
+// Triggers e REVOKEs são parte do invariante de anonimato (R1, R5, A1).
+// Não remover sem reabrir a security review. O motor de cálculo vive em
+// api/src/psy/motor.ts, é lógica pura testável sem BD.
+// ============================================================================
+
+model psy_instruments {
+  id                  String    @id
+  tenantId            String
+  versao              String
+  estado              String    @default("rascunho")
+  etiqueta_validacao  String    @default("em validação")
+  criadoPor           String?
+  criadoEm            DateTime  @default(now()) @db.Timestamp(6)
+
+  dimensions          psy_dimensions[]
+  thresholds          psy_thresholds[]
+  campaigns           psy_campaigns[]
+
+  @@index([tenantId])
+}
+
+model psy_dimensions {
+  id            String    @id
+  instrumentId  String
+  codigo        String
+  nome          String
+  bloco         String?
+  grupo         String    // Essencial | Complementar | ComplementarII
+  tipo          String    // Risco | Protetiva
+  impacto       Int       // 2 | 3 | 4
+  ordem         Int       @default(0)
+
+  instrument    psy_instruments  @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  questions     psy_questions[]
+  action_plans  psy_action_plans[]
+
+  @@unique([instrumentId, codigo])
+}
+
+model psy_questions {
+  id           String    @id
+  dimensionId  String
+  codigo       String
+  texto        String
+  direcao      String    // Direta | Inversa
+  ordem        Int       @default(0)
+
+  dimension    psy_dimensions  @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+  answers      psy_answers[]
+
+  @@unique([dimensionId, codigo])
+}
+
+model psy_thresholds {
+  id            String   @id
+  instrumentId  String
+  tipo          String   // classificacao | igrp | criticidade
+  chave         String
+  valor         Decimal
+
+  instrument    psy_instruments  @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+
+  @@index([instrumentId, tipo])
+}
+
+// ----------------------------------------------------------------------------
+// REGRA DE SUBSTITUIÇÃO (planos placeholder → planos reais):
+//
+// O seed inicial (api/scripts/seed-psy-nr1.ts) insere 1 linha por dimensão
+// com classificacao='placeholder' e texto=''. Estas linhas são TEMPORÁRIAS.
+//
+// Quando os textos reais chegarem, o seed correspondente DEVE, por dimensão:
+//   1. APAGAR primeiro a(s) linha(s) placeholder dessa dimensão.
+//   2. SÓ DEPOIS inserir as linhas reais, uma por classificação relevante
+//      (favoravel, atencao, risco, elevado).
+// NUNCA misturar placeholder com reais na mesma dimensão.
+//
+// Caminho único oficial: helper `seedActionPlans(sb, dimensionId, mapa)` em
+// api/scripts/lib/seed-action-plans.ts (delete-then-insert por dimensão).
+// ----------------------------------------------------------------------------
+model psy_action_plans {
+  id             String   @id
+  dimensionId    String
+  classificacao  String   /// 'placeholder' (temporário) ou 'favoravel'|'atencao'|'risco'|'elevado'
+  texto          String
+
+  dimension      psy_dimensions  @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
+
+  @@index([dimensionId])
+}
+
+model psy_campaigns {
+  id                 String    @id
+  tenantId           String
+  clientOrgId        String
+  instrumentId       String
+  comprimento        String    // curto | medio | longo
+  inicio             DateTime? @db.Date
+  fim                DateTime? @db.Date
+  metaAmostragemPct  Int?
+  estado             String    @default("rascunho") // rascunho | em_curso | encerrada
+  criadoEm           DateTime  @default(now()) @db.Timestamp(6)
+
+  instrument         psy_instruments       @relation(fields: [instrumentId], references: [id], onDelete: Restrict)
+  areas              psy_campaign_areas[]
+  tokens             psy_dispatch_tokens[]
+  responses          psy_responses[]
+
+  @@index([tenantId])
+  @@index([clientOrgId])
+}
+
+model psy_campaign_areas {
+  id          String   @id
+  campaignId  String
+  area        String
+  esperados   Int
+
+  campaign    psy_campaigns          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  tokens      psy_dispatch_tokens[]
+  responses   psy_responses[]
+
+  @@unique([campaignId, area])
+}
+
+// ----------------------------------------------------------------------------
+// INVARIANTE DE ANONIMATO: psy_dispatch_tokens NÃO TEM IP NEM userAgent.
+// emailTemp é temporário: anulado pela camada de aplicação após disparo.
+//
+// HARDENING (v11, ver SQL):
+//   - CHECK (length(token) >= 32) ao nível da BD.
+//   - Trigger BEFORE INSERT OR UPDATE trunca usadoEm a date_trunc('hour', ...).
+// ----------------------------------------------------------------------------
+model psy_dispatch_tokens {
+  id          String    @id
+  campaignId  String
+  token       String    @unique  /// CHECK (length(token) >= 32) ao nível da BD
+  areaId      String
+  estado      String    @default("pendente") // pendente | enviado | usado
+  emailTemp   String?
+  expiraEm    DateTime? @db.Timestamp(6)
+  usadoEm     DateTime? @db.Timestamp(6)  /// trigger trunca a hora ao INSERT/UPDATE
+
+  campaign    psy_campaigns       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  area        psy_campaign_areas  @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([areaId])
+}
+
+// ----------------------------------------------------------------------------
+// INVARIANTE DE ANONIMATO NÃO-NEGOCIÁVEL: psy_responses NÃO TEM E NUNCA TERÁ:
+//   - tokenId / dispatchTokenId / qualquer FK para psy_dispatch_tokens
+//   - userId / traineeId / trainerId / qualquer FK para identidade
+//   - ip / userAgent / email / nome
+// Qualquer adição que viole isto destrói o anonimato do instrumento NR-1
+// e exposição legal (RGPD art. 9.º, DGERT).
+//
+// HARDENING (v11, ver SQL):
+//   - Trigger BEFORE INSERT trunca submetidoEm a date_trunc('hour', ...).
+//   - REVOKE INSERT, UPDATE, DELETE ON psy_responses FROM authenticated.
+//     Escritas exclusivamente via SERVICE_ROLE_KEY no backend.
+// ----------------------------------------------------------------------------
+model psy_responses {
+  id                 String   @id
+  campaignId         String
+  areaId             String
+  instrumentVersao   String
+  submetidoEm        DateTime @default(now()) @db.Timestamp(6)  /// trigger trunca a hora ao INSERT
+
+  campaign           psy_campaigns       @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  area               psy_campaign_areas  @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  answers            psy_answers[]
+
+  @@index([campaignId])
+  @@index([areaId])
+}
+
+// ----------------------------------------------------------------------------
+// HARDENING (v11, ver SQL):
+//   - REVOKE INSERT, UPDATE, DELETE ON psy_answers FROM authenticated.
+//     Escritas exclusivamente via SERVICE_ROLE_KEY no backend.
+// ----------------------------------------------------------------------------
+model psy_answers {
+  id          String  @id
+  responseId  String
+  questionId  String
+  valor       Int     // 1 a 5
+
+  response    psy_responses  @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question    psy_questions  @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@unique([responseId, questionId])
+}

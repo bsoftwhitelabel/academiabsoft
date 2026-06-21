@@ -1,7 +1,8 @@
-import { useMemo } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
-import { Bell, User as UserIcon, LogOut } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { useTheme } from "next-themes"
+import { Search, Sun, Moon, Bell, User as UserIcon, LogOut } from "lucide-react"
 import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -14,49 +15,25 @@ import {
 import { useAuthStore } from "@/stores/auth.store"
 import { signOut } from "@/hooks/useAuth"
 
-const TITLES: Record<string, string> = {
-  dashboard: "Dashboard",
-  "training-plans": "Planos de Formação",
-  courses: "Cursos",
-  actions: "Ações de Formação",
-  trainers: "Formadores",
-  trainees: "Formandos",
-  questionarios: "Questionários",
-  management: "Gestão",
-  analytics: "Relatórios",
-  approvals: "Aprovações",
-  projects: "Projetos",
-}
-
-const TRAINER_TITLES: Record<string, string> = {
-  dashboard: "Dashboard",
-  sessions: "Minhas Sessões",
-  materials: "Materiais",
-}
-
-function resolveTitle(pathname: string): string {
-  const segments = pathname.split("/").filter(Boolean)
-  const tIdx = segments.indexOf("trainer")
-  if (tIdx >= 0) {
-    const sub = segments[tIdx + 1]
-    // /trainer/sessions/:id -> "Sessão"
-    if (sub === "sessions" && segments[tIdx + 2]) return "Sessão"
-    return TRAINER_TITLES[sub] ?? "Portal do Formador"
-  }
-  const idx = segments.indexOf("admin")
-  const key = idx >= 0 ? segments[idx + 1] : segments[0]
-  return TITLES[key] ?? "Academia Digital"
+function deriveInitials(email: string | undefined): string {
+  if (!email) return "?"
+  const parts = email.split(/[.@_\-+]/).filter(Boolean)
+  if (parts.length === 0) return "?"
+  return parts
+    .slice(0, 2)
+    .map((p) => p.charAt(0).toUpperCase())
+    .join("")
 }
 
 export function Topbar() {
-  const location = useLocation()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
+  const { resolvedTheme, setTheme } = useTheme()
 
-  const title = useMemo(() => resolveTitle(location.pathname), [location.pathname])
   const email = user?.email ?? "Utilizador"
-  const initial = (user?.email?.charAt(0) ?? "?").toUpperCase()
+  const initials = deriveInitials(user?.email)
+  const isDark = resolvedTheme === "dark"
 
   async function handleLogout() {
     try {
@@ -70,21 +47,50 @@ export function Topbar() {
   }
 
   return (
-    <header className="sticky top-0 z-10 h-16 shrink-0 bg-background border-b flex items-center justify-between px-6">
-      <h2 className="text-base font-semibold">{title}</h2>
+    <header className="sticky top-0 z-10 h-[52px] shrink-0 bg-card border-b border-border flex items-center justify-between px-4 gap-4">
+      <div className="relative max-w-md flex-1">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          aria-label="Pesquisar"
+          placeholder="Pesquisar..."
+          className="pl-9 h-9 bg-background border-input"
+        />
+      </div>
 
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label="Notificações">
-          <Bell className="h-4 w-4" />
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9"
+          aria-label={isDark ? "Tema claro" : "Tema escuro"}
+          onClick={() => setTheme(isDark ? "light" : "dark")}
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-9 w-9"
+          aria-label="Notificações"
+        >
+          <Bell className="h-4 w-4" />
+          <span
+            aria-hidden
+            className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-destructive ring-2 ring-card"
+          />
+        </Button>
+
+        <div className="mx-1 h-6 w-px bg-border" aria-hidden />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold"
+              aria-label="Menu de utilizador"
             >
-              {initial}
+              {initials}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

@@ -1,0 +1,206 @@
+{
+  "instrument": {
+    "dimensions": [
+      {
+        "code": "DR",
+        "tipo": "Risco",
+        "impacto": 3,
+        "questions": [
+          "q1",
+          "q2",
+          "q3"
+        ]
+      },
+      {
+        "code": "DP",
+        "tipo": "Protetiva",
+        "impacto": 2,
+        "questions": [
+          "q4",
+          "q5",
+          "q6"
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "code": "q1",
+        "direcao": "Direta"
+      },
+      {
+        "code": "q2",
+        "direcao": "Inversa"
+      },
+      {
+        "code": "q3",
+        "direcao": "Direta"
+      },
+      {
+        "code": "q4",
+        "direcao": "Direta"
+      },
+      {
+        "code": "q5",
+        "direcao": "Inversa"
+      },
+      {
+        "code": "q6",
+        "direcao": "Direta"
+      }
+    ]
+  },
+  "casos": {
+    "neutro_tudo_3": {
+      "respostas": [
+        {
+          "q1": 3,
+          "q2": 3,
+          "q3": 3,
+          "q4": 3,
+          "q5": 3,
+          "q6": 3
+        }
+      ],
+      "esperado": {
+        "dimensoes": {
+          "DR": {
+            "media": 3.0,
+            "pontuacao": 50.0,
+            "classificacao": "Atenção",
+            "prob_valor": 2,
+            "impacto": 3,
+            "criticidade": 6,
+            "prioridade": "P3"
+          },
+          "DP": {
+            "media": 3.0,
+            "pontuacao": 50.0,
+            "classificacao": "Atenção",
+            "prob_valor": 2,
+            "impacto": 2,
+            "criticidade": 4,
+            "prioridade": "P3"
+          }
+        },
+        "IGRP": 3.0,
+        "IMO": 3.0
+      }
+    },
+    "risco_alto": {
+      "respostas": [
+        {
+          "q1": 5,
+          "q2": 1,
+          "q3": 5,
+          "q4": 1,
+          "q5": 5,
+          "q6": 1
+        }
+      ],
+      "esperado": {
+        "dimensoes": {
+          "DR": {
+            "media": 5.0,
+            "pontuacao": 100.0,
+            "classificacao": "Risco Elevado",
+            "prob_valor": 4,
+            "impacto": 3,
+            "criticidade": 12,
+            "prioridade": "P1"
+          },
+          "DP": {
+            "media": 5.0,
+            "pontuacao": 100.0,
+            "classificacao": "Risco Elevado",
+            "prob_valor": 4,
+            "impacto": 2,
+            "criticidade": 8,
+            "prioridade": "P2"
+          }
+        },
+        "IGRP": 5.0,
+        "IMO": 1.0
+      }
+    },
+    "risco_baixo": {
+      "respostas": [
+        {
+          "q1": 1,
+          "q2": 5,
+          "q3": 1,
+          "q4": 5,
+          "q5": 1,
+          "q6": 5
+        }
+      ],
+      "esperado": {
+        "dimensoes": {
+          "DR": {
+            "media": 1.0,
+            "pontuacao": 0.0,
+            "classificacao": "Favorável",
+            "prob_valor": 1,
+            "impacto": 3,
+            "criticidade": 3,
+            "prioridade": "P4"
+          },
+          "DP": {
+            "media": 1.0,
+            "pontuacao": 0.0,
+            "classificacao": "Favorável",
+            "prob_valor": 1,
+            "impacto": 2,
+            "criticidade": 2,
+            "prioridade": "P4"
+          }
+        },
+        "IGRP": 1.0,
+        "IMO": 5.0
+      }
+    },
+    "dois_respondentes": {
+      "respostas": [
+        {
+          "q1": 4,
+          "q2": 2,
+          "q3": 3,
+          "q4": 2,
+          "q5": 4,
+          "q6": 3
+        },
+        {
+          "q1": 2,
+          "q2": 4,
+          "q3": 5,
+          "q4": 4,
+          "q5": 2,
+          "q6": 1
+        }
+      ],
+      "esperado": {
+        "dimensoes": {
+          "DR": {
+            "media": 3.3333,
+            "pontuacao": 58.3,
+            "classificacao": "Risco",
+            "prob_valor": 3,
+            "impacto": 3,
+            "criticidade": 9,
+            "prioridade": "P2"
+          },
+          "DP": {
+            "media": 3.3333,
+            "pontuacao": 58.3,
+            "classificacao": "Risco",
+            "prob_valor": 3,
+            "impacto": 2,
+            "criticidade": 6,
+            "prioridade": "P3"
+          }
+        },
+        "IGRP": 3.3333,
+        "IMO": 2.6667
+      }
+    }
+  }
+}

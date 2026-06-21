@@ -1,17 +1,23 @@
-import { useEffect, useMemo, useState } from "react"
-import { Pencil, Trash2, Plus, GripVertical, AlertTriangle, Lock } from "lucide-react"
-import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useState } from "react"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  Pencil,
+  Trash2,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
+  AlertTriangle,
+  Lock,
+} from "lucide-react"
+import { toast } from "sonner"
 import { useIsSuperAdmin } from "@/hooks/useCurrentUser"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   useCourseModules,
   useDeleteCourseModule,
@@ -35,57 +41,43 @@ export function CourseModulesTab({ course }: Props) {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<CourseModule | null>(null)
   const [overridden, setOverridden] = useState(false)
-  const [localOrder, setLocalOrder] = useState<CourseModule[]>([])
-  const [dragId, setDragId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<CourseModule | null>(null)
 
-  const serverModules = useMemo(
-    () => modulesQ.data ?? [],
-    [modulesQ.data]
-  )
-  useEffect(() => setLocalOrder(serverModules), [serverModules])
-
+  const modules = modulesQ.data ?? []
   const inUseCount = actionCountQ.data ?? 0
   const locked = inUseCount > 0 && !overridden
   const canEdit = !locked
 
-  const sumHours = localOrder.reduce(
+  const totalHours = modules.reduce(
     (s, m) => s + (Number(m.durationHours) || 0),
     0
   )
-  const courseHours = Number(course.durationHours) || 0
-  const hoursMismatch =
-    courseHours > 0 && Math.abs(sumHours - courseHours) > 0.001
 
-  async function handleDelete(id: string) {
+  async function confirmDelete() {
+    if (!deleting) return
     try {
-      await del.mutateAsync(id)
+      await del.mutateAsync({ id: deleting.id, courseId: course.id })
       toast.success("Módulo eliminado")
+      setDeleting(null)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao eliminar")
     }
   }
 
-  async function persistOrder(next: CourseModule[]) {
-    setLocalOrder(next)
+  async function moveModule(idx: number, dir: -1 | 1) {
+    const target = idx + dir
+    if (target < 0 || target >= modules.length) return
+    const next = [...modules]
+    const [moved] = next.splice(idx, 1)
+    next.splice(target, 0, moved)
     try {
-      await reorder.mutateAsync(next.map((m) => m.id))
-      toast.success("Ordem atualizada")
+      await reorder.mutateAsync({
+        orderedIds: next.map((m) => m.id),
+        courseId: course.id,
+      })
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro a reordenar")
-      setLocalOrder(serverModules)
     }
-  }
-
-  function onDrop(targetId: string) {
-    if (!dragId || dragId === targetId) return
-    const from = localOrder.findIndex((m) => m.id === dragId)
-    const to = localOrder.findIndex((m) => m.id === targetId)
-    if (from < 0 || to < 0) return
-    const next = [...localOrder]
-    const [moved] = next.splice(from, 1)
-    next.splice(to, 0, moved)
-    setDragId(null)
-    persistOrder(next)
   }
 
   function requestOverride() {
@@ -104,148 +96,227 @@ export function CourseModulesTab({ course }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Aviso lock */}
       {inUseCount > 0 && (
-        <div className="flex items-start justify-between gap-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+        <div className="flex items-start justify-between gap-3 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-600" />
+            <AlertTriangle className="mt-0.5 h-4 w-4 text-warning" />
             <div>
-              <p className="font-medium text-amber-700">
+              <p className="font-medium text-foreground">
                 Curso em uso por {inUseCount} ação(ões)
               </p>
-              <p className="text-amber-700/80">
-                Editar campos críticos compromete o histórico DGERT. Edição
-                de módulos bloqueada.
+              <p className="text-muted-foreground">
+                Editar campos críticos compromete o histórico DGERT. Edição de
+                módulos bloqueada.
               </p>
             </div>
           </div>
           {locked && isSuperAdmin && (
-            <Button
-              size="sm"
-              variant="outline"
+            <button
+              type="button"
               onClick={requestOverride}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-xs font-medium text-foreground hover:bg-muted transition"
             >
-              <Lock className="mr-2 h-4 w-4" />
-              Desbloquear (SUPER_ADMIN)
-            </Button>
+              <Lock className="h-3.5 w-3.5" />
+              Desbloquear
+            </button>
           )}
           {overridden && (
-            <Badge variant="destructive">Override ativo</Badge>
+            <span className="inline-flex items-center rounded-md border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-destructive">
+              Override ativo
+            </span>
           )}
         </div>
       )}
 
-      {hoursMismatch && (
-        <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-sm text-amber-700">
-          <AlertTriangle className="h-4 w-4" />
-          Soma dos módulos ({sumHours}h) não bate com a duração do curso (
-          {courseHours}h).
-        </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>
-            {localOrder.length} módulo(s) · {sumHours}h de {courseHours}h
-          </span>
-        </div>
-        <Button
-          size="sm"
-          disabled={!canEdit}
-          onClick={() => {
-            setEditing(null)
-            setOpen(true)
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Novo módulo
-        </Button>
-      </div>
-
-      <div className="rounded-md border bg-background">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10" />
-              <TableHead className="w-16">Ordem</TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead className="w-32">Duração (h)</TableHead>
-              <TableHead className="w-24" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {localOrder.length === 0 ? (
-              <TableRow>
-                <TableCell
+      {/* Tabela */}
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <table className="w-full text-sm tabular-nums">
+          <thead className="bg-muted">
+            <tr className="border-b border-border">
+              <th className="w-10 px-3 py-2.5" />
+              <th className="w-16 px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Ordem
+              </th>
+              <th className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Nome
+              </th>
+              <th className="w-32 px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Duração (h)
+              </th>
+              <th className="w-32 px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Ações
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {modulesQ.isLoading ? (
+              <tr>
+                <td
                   colSpan={5}
-                  className="h-20 text-center text-muted-foreground"
+                  className="px-3 py-8 text-center text-sm text-muted-foreground"
                 >
-                  {modulesQ.isLoading ? "A carregar..." : "Sem módulos."}
-                </TableCell>
-              </TableRow>
+                  A carregar...
+                </td>
+              </tr>
+            ) : modules.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="px-3 py-8 text-center text-sm text-muted-foreground"
+                >
+                  Sem módulos.
+                </td>
+              </tr>
             ) : (
-              localOrder.map((m, idx) => (
-                <TableRow
+              modules.map((m, idx) => (
+                <tr
                   key={m.id}
-                  draggable={canEdit}
-                  onDragStart={() => setDragId(m.id)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => onDrop(m.id)}
-                  className={dragId === m.id ? "opacity-50" : undefined}
+                  className="group hover:bg-muted/50 transition"
                 >
-                  <TableCell>
-                    {canEdit && (
-                      <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground" />
-                    )}
-                  </TableCell>
-                  <TableCell>{idx + 1}</TableCell>
-                  <TableCell>
-                    <div className="font-medium">{m.name}</div>
+                  <td className="px-3 py-2 text-muted-foreground">
+                    <GripVertical
+                      aria-hidden
+                      className="h-4 w-4 opacity-50"
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-1">
+                      <span className="text-foreground font-medium">
+                        {idx + 1}
+                      </span>
+                      {canEdit && (
+                        <div className="flex flex-col opacity-0 group-hover:opacity-100 transition">
+                          <button
+                            type="button"
+                            onClick={() => moveModule(idx, -1)}
+                            disabled={idx === 0}
+                            className="h-4 w-4 inline-flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+                            aria-label="Mover para cima"
+                          >
+                            <ChevronUp className="h-3 w-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveModule(idx, 1)}
+                            disabled={idx === modules.length - 1}
+                            className="h-4 w-4 inline-flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+                            aria-label="Mover para baixo"
+                          >
+                            <ChevronDown className="h-3 w-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="text-sm font-medium text-foreground">
+                      {m.name}
+                    </div>
                     {m.description && (
                       <div className="text-xs text-muted-foreground">
                         {m.description}
                       </div>
                     )}
-                  </TableCell>
-                  <TableCell>{m.durationHours}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={!canEdit}
+                  </td>
+                  <td className="px-3 py-2 text-foreground">
+                    {m.durationHours}h
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <div className="inline-flex items-center gap-1">
+                      <button
+                        type="button"
                         onClick={() => {
                           setEditing(m)
                           setOpen(true)
                         }}
+                        disabled={!canEdit}
+                        className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        aria-label="Editar módulo"
                       >
                         <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleting(m)}
                         disabled={!canEdit}
-                        onClick={() => handleDelete(m.id)}
+                        className="h-8 w-8 inline-flex items-center justify-center rounded-md text-destructive hover:bg-destructive/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                        aria-label="Eliminar módulo"
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ))
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+          {modules.length > 0 && (
+            <tfoot>
+              <tr className="border-t border-border bg-muted/50">
+                <td className="px-3 py-2.5" />
+                <td
+                  colSpan={2}
+                  className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+                >
+                  Total
+                </td>
+                <td className="px-3 py-2.5 text-foreground font-semibold">
+                  {totalHours}h
+                </td>
+                <td />
+              </tr>
+            </tfoot>
+          )}
+        </table>
       </div>
 
+      {/* Modal Novo/Editar módulo (controlado pela tabela) */}
       {open && (
         <CourseModuleForm
           open={open}
           onOpenChange={setOpen}
           courseId={course.id}
           module={editing}
-          nextOrder={localOrder.length + 1}
+          nextOrder={modules.length + 1}
         />
       )}
+
+      {/* Dialog confirmação Eliminar */}
+      <Dialog
+        open={!!deleting}
+        onOpenChange={(o) => {
+          if (!o) setDeleting(null)
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Eliminar módulo?</DialogTitle>
+            <DialogDescription>
+              {deleting
+                ? `Vais eliminar "${deleting.name}". A duração do curso é recalculada automaticamente.`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setDeleting(null)}
+              className="h-10 rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-muted transition"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={confirmDelete}
+              disabled={del.isPending}
+              className="h-10 rounded-lg bg-destructive px-4 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90 disabled:opacity-60 transition"
+            >
+              {del.isPending ? "A eliminar..." : "Eliminar"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
