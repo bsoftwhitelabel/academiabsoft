@@ -24,6 +24,7 @@
  * handler. Mantém os logs livres de PII.
  */
 import type { MiddlewareHandler } from "hono"
+import { assertSupabaseEnv } from "../env.js"
 import { getSupabaseAdmin } from "../services/supabase.js"
 
 export type AuthUser = {
@@ -45,6 +46,12 @@ export const requireAuth: MiddlewareHandler = async (c, next) => {
   }
   const jwt = header.slice(7).trim()
   if (!jwt) return c.json({ error: "Autenticacao obrigatoria" }, 401)
+
+  const configErr = assertSupabaseEnv()
+  if (configErr) {
+    console.error("[auth] config:", configErr)
+    return c.json({ error: "Servidor sem configuracao Supabase" }, 503)
+  }
 
   const sb = getSupabaseAdmin()
 
