@@ -9,8 +9,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": "_src",
     "types": ["node"]
   },
-  "include": ["src"]
+  "include": ["_src"]
 }

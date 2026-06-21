@@ -1,5 +1,5 @@
 // Encontra uma action com inscrições para testar o /generate-mass.
-import { getSupabaseAdmin } from "../src/services/supabase.js"
+import { getSupabaseAdmin } from "../_src/services/supabase.js"
 
 const sb = getSupabaseAdmin()
 const { data, error } = await sb

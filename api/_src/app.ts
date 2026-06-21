@@ -1,5 +1,5 @@
 /**
- * App Hono partilhada entre runtime Node local (api/src/index.ts) e
+ * App Hono partilhada entre runtime Node local (api/_src/index.ts) e
  * runtime Vercel Serverless (api/index.ts).
  *
  * NÃO arranca server aqui. Apenas constrói e exporta `app`.

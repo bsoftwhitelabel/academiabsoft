@@ -7,7 +7,7 @@
  * responda 501, mantendo puppeteer fora do bundle.
  */
 import { handle } from "hono/vercel"
-import { app } from "./src/app.js"
+import { app } from "./_src/app.js"
 
 // Sem `export const config = { runtime }`: Vercel @vercel/node 5+ deprecou
 // a string "nodejs" e a sintaxe nova mudaria semântica. Default é Node.js

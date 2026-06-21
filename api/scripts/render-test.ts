@@ -1,9 +1,9 @@
 // Teste local de render (sem BD): produz os 2 PDFs para validação visual.
 // Temporário — apagar após validação.
 import { mkdirSync, writeFileSync } from "node:fs"
-import { renderChecklist } from "../src/templates/checklist.js"
-import { renderFichaIdentificacao } from "../src/templates/ficha-identificacao.js"
-import { withPage } from "../src/services/puppeteer.js"
+import { renderChecklist } from "../_src/templates/checklist.js"
+import { renderFichaIdentificacao } from "../_src/templates/ficha-identificacao.js"
+import { withPage } from "../_src/services/puppeteer.js"
 
 mkdirSync("_out", { recursive: true })
 

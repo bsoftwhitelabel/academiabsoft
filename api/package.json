@@ -6,10 +6,10 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch _src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test:psy": "tsx --test src/psy/motor.test.ts src/psy/tokens.test.ts src/psy/anonimato.test.ts"
+    "test:psy": "tsx --test _src/psy/motor.test.ts _src/psy/tokens.test.ts _src/psy/anonimato.test.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
