@@ -1,25 +1,33 @@
 /**
  * Base URL para pedidos à API Hono (/api/*).
  *
- * Produção: same-origin ("") salvo VITE_API_BASE explícito.
- * Dev: proxy Vite /api → :3001; VITE_PDF_API_URL legado só em dev.
+ * Em produção (qualquer host ≠ localhost): same-origin ("").
+ * Em dev local: VITE_API_BASE ou VITE_PDF_API_URL, ou "" (proxy Vite).
  *
- * NUNCA definir VITE_PDF_API_URL na Vercel — embute localhost no bundle.
+ * Resolvido em runtime (não no build) para ignorar VITE_PDF_API_URL=localhost
+ * embutido por engano na Vercel.
  */
 function trimBase(value: string | undefined): string {
   return value?.trim().replace(/\/+$/, "") ?? ""
 }
 
-export const API_BASE = (() => {
-  const explicit = trimBase(import.meta.env.VITE_API_BASE as string | undefined)
-  if (explicit) return explicit
+function isLocalDevHost(): boolean {
+  if (typeof window === "undefined") return import.meta.env.DEV
+  const h = window.location.hostname
+  return h === "localhost" || h === "127.0.0.1"
+}
 
-  if (!import.meta.env.PROD) {
-    const legacy = trimBase(
-      import.meta.env.VITE_PDF_API_URL as string | undefined
-    )
-    if (legacy) return legacy
+export function getApiBase(): string {
+  if (!isLocalDevHost()) {
+    const explicit = trimBase(import.meta.env.VITE_API_BASE as string | undefined)
+    if (explicit && !/localhost|127\.0\.0\.1/i.test(explicit)) return explicit
+    return ""
   }
 
-  return ""
-})()
+  const explicit = trimBase(import.meta.env.VITE_API_BASE as string | undefined)
+  if (explicit) return explicit
+  return trimBase(import.meta.env.VITE_PDF_API_URL as string | undefined) || ""
+}
+
+/** @deprecated Preferir getApiBase() — constante não reflecte runtime em builds antigos */
+export const API_BASE = ""
