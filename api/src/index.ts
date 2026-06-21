@@ -1,37 +1,17 @@
+/**
+ * Bootstrap do servidor Hono em Node local (npm run dev:api).
+ * Em Vercel Serverless, a entrada é api/index.ts (que reusa a mesma app).
+ */
 import { serve } from "@hono/node-server"
-import { Hono } from "hono"
-import { cors } from "hono/cors"
-import { env, isProduction, resolveCorsOrigin } from "./env.js"
-import { pdfRoute } from "./routes/pdf.js"
-import { psyRoutes } from "./routes/psy.js"
-import { psyPublicRoutes } from "./routes/psy-public.js"
-import { questionnaireRoutes } from "./routes/questionnaires.js"
+import { app, isServerless } from "./app.js"
+import { env, isProduction } from "./env.js"
 
-const app = new Hono()
-
-app.use(
-  "*",
-  cors({
-    // Função: dev aceita qualquer porta de localhost (Vite muda de porta
-    // quando há conflito); prod aceita só APP_ORIGIN/CORS_ORIGIN explícitas.
-    origin: (origin) => resolveCorsOrigin(origin),
-    credentials: true,
-    allowMethods: ["GET", "POST", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
-    maxAge: 600,
-  })
-)
-// OPTIONS preflight: Hono cors trata, mas garantimos resposta 204 em qualquer rota.
-app.options("*", (c) => c.body(null, 204))
-
-app.get("/health", (c) =>
-  c.json({ ok: true, service: "academia-api", ts: new Date().toISOString() })
-)
-
-app.route("/api/pdf", pdfRoute)
-app.route("/api/q", questionnaireRoutes)
-app.route("/api/q/psy", psyPublicRoutes)
-app.route("/api/psy", psyRoutes)
+// Em Node local: monta a rota PDF dinamicamente (mantém puppeteer fora do
+// bundle quando o app for empacotado pelo Vercel).
+if (!isServerless) {
+  const { pdfRoute } = await import("./routes/pdf.js")
+  app.route("/api/pdf", pdfRoute)
+}
 
 serve({ fetch: app.fetch, port: env.PORT }, (info) => {
   console.log(`[api] Hono a ouvir em http://localhost:${info.port}`)

@@ -1,0 +1,34 @@
+# Não fazer upload para Vercel
+node_modules
+api/node_modules
+
+# Scripts internos (não são endpoints, não vão para Vercel)
+api/scripts/
+api/seed/
+api/prisma/
+api/_out/
+api/dist/
+
+# Tudo o que está em api/scripts/_*.json (audits, plans, snapshots)
+api/scripts/_*.json
+
+# Docs (não servem em runtime)
+docs/
+referencias/
+
+# Testes
+**/*.test.ts
+**/*.test.tsx
+
+# Segredos locais
+.env
+.env.local
+api/.env
+
+# Editor
+.vscode/
+.idea/
+
+# Build artefacts locais
+dist/
+api/dist/

@@ -29,13 +29,13 @@ const formSchema = z.object({
   clientOrgId: z.string().min(1, "Empresa cliente obrigatória"),
   inicio: z.string().optional(),
   fim: z.string().optional(),
-  metaAmostragemPct: z.coerce.number().int().min(0).max(100),
+  metaAmostragemPct: z.number().int().min(0).max(100),
   comprimento: z.enum(["curto", "medio", "longo"]),
   areas: z
     .array(
       z.object({
         area: z.string().min(1, "Nome de área obrigatório"),
-        esperados: z.coerce.number().int().min(0).max(10000),
+        esperados: z.number().int().min(0).max(10000),
       })
     )
     .min(1, "Adiciona pelo menos uma área"),
@@ -210,7 +210,9 @@ export function NovaCampanhaPage() {
                     type="range"
                     min={0}
                     max={100}
-                    {...form.register("metaAmostragemPct")}
+                    {...form.register("metaAmostragemPct", {
+                      valueAsNumber: true,
+                    })}
                     className="flex-1 accent-primary"
                   />
                   <div className="w-20 tabular-nums text-right text-sm font-semibold text-foreground">
@@ -316,7 +318,9 @@ export function NovaCampanhaPage() {
                         <input
                           type="number"
                           min={0}
-                          {...form.register(`areas.${i}.esperados` as const)}
+                          {...form.register(`areas.${i}.esperados` as const, {
+                            valueAsNumber: true,
+                          })}
                           className="w-24 bg-transparent border border-transparent hover:border-border focus:border-primary rounded px-2 py-1 text-sm text-right tabular-nums"
                         />
                       </td>
