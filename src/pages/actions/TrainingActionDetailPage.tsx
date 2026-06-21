@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import { toast } from "sonner"
+import { API_BASE } from "@/lib/api-base"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -215,8 +216,7 @@ export function TrainingActionDetailPage() {
     setPdfLoading(true)
     const t = toast.loading("A gerar PDF...")
     try {
-      const base = import.meta.env.VITE_PDF_API_URL ?? "http://localhost:3001"
-      const res = await fetch(`${base}/api/pdf/generate`, {
+      const res = await fetch(`${API_BASE}/api/pdf/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ templateCode, actionId: id }),
@@ -248,8 +248,7 @@ export function TrainingActionDetailPage() {
     opts.loading(true)
     const t = toast.loading(opts.loadingMsg)
     try {
-      const base = import.meta.env.VITE_PDF_API_URL ?? "http://localhost:3001"
-      const res = await fetch(`${base}/api/pdf/generate-mass`, {
+      const res = await fetch(`${API_BASE}/api/pdf/generate-mass`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ templateCode: opts.templateCode, actionId: id }),
@@ -315,8 +314,7 @@ export function TrainingActionDetailPage() {
     const t0 = Date.now()
     setDossierLoading(true)
     try {
-      const base = import.meta.env.VITE_PDF_API_URL ?? "http://localhost:3001"
-      const res = await fetch(`${base}/api/pdf/generate-dossier`, {
+      const res = await fetch(`${API_BASE}/api/pdf/generate-dossier`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ actionId: id }),

@@ -32,14 +32,16 @@ app.use(
 )
 app.options("*", (c) => c.body(null, 204))
 
-app.get("/health", (c) =>
-  c.json({
-    ok: true,
-    service: "academia-api",
-    runtime: process.env.VERCEL ? "vercel" : "node",
-    ts: new Date().toISOString(),
-  })
-)
+const healthPayload = () => ({
+  ok: true,
+  service: "academia-api",
+  runtime: process.env.VERCEL ? "vercel" : "node",
+  ts: new Date().toISOString(),
+})
+
+// /health — Node local (curl :3001/health). /api/health — Vercel (rewrite /api/*).
+app.get("/health", (c) => c.json(healthPayload()))
+app.get("/api/health", (c) => c.json(healthPayload()))
 
 // Rotas que correm em ambos os runtimes
 app.route("/api/q", questionnaireRoutes)

@@ -1,8 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-
-const API_BASE =
-  (import.meta.env.VITE_PDF_API_URL as string | undefined) ??
-  "http://localhost:3001"
+import { API_BASE } from "@/lib/api-base"
 
 export type Question = {
   id: string

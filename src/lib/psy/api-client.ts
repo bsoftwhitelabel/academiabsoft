@@ -6,16 +6,8 @@
  * tabelas estão lock para o role authenticated; só o backend lê via service
  * role e devolve agregados).
  */
+import { API_BASE } from "@/lib/api-base"
 import { supabase } from "@/lib/supabase"
-
-/**
- * Em dev, o Vite faz proxy /api → http://localhost:3001 (ver vite.config.ts),
- * por isso o caminho é sempre relativo. Em produção, frontend e API ficam
- * atrás do mesmo origin (ex: vercel + serverless functions, ou nginx
- * reverse proxy), pelo que /api continua relativo. Se for preciso forçar
- * um host externo (preview deploy, etc), definir VITE_API_BASE.
- */
-const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? ""
 
 export class PsyApiError extends Error {
   status: number
