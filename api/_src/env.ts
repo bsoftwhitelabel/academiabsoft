@@ -42,7 +42,7 @@ function resolvePublicAppOrigin(): string {
 export const env = {
   PORT: Number(process.env.PORT ?? 3001),
   NODE_ENV: process.env.NODE_ENV ?? "development",
-  SUPABASE_URL: process.env.SUPABASE_URL ?? "",
+  SUPABASE_URL: httpsOrigin(process.env.SUPABASE_URL) || (process.env.SUPABASE_URL ?? ""),
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   // CORS_ORIGIN: legado, ainda lido como fallback em prod se APP_ORIGIN estiver vazio.
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? "http://localhost:5173",
@@ -79,8 +79,12 @@ export function resolveCorsOrigin(origin: string | undefined): string | null {
 }
 
 export function assertPdfEnv(): string | null {
-  if (!env.SUPABASE_URL) return "SUPABASE_URL não configurado em api/.env"
+  return assertSupabaseEnv()
+}
+
+export function assertSupabaseEnv(): string | null {
+  if (!env.SUPABASE_URL) return "SUPABASE_URL não configurado"
   if (!env.SUPABASE_SERVICE_ROLE_KEY)
-    return "SUPABASE_SERVICE_ROLE_KEY não configurado em api/.env"
+    return "SUPABASE_SERVICE_ROLE_KEY não configurado"
   return null
 }

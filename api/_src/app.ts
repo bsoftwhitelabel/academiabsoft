@@ -10,7 +10,7 @@
  */
 import { Hono } from "hono"
 import { cors } from "hono/cors"
-import { resolveCorsOrigin } from "./env.js"
+import { resolveCorsOrigin, assertSupabaseEnv } from "./env.js"
 import { psyRoutes } from "./routes/psy.js"
 import { psyPublicRoutes } from "./routes/psy-public.js"
 import { questionnaireRoutes } from "./routes/questionnaires.js"
@@ -36,6 +36,7 @@ const healthPayload = () => ({
   ok: true,
   service: "academia-api",
   runtime: process.env.VERCEL ? "vercel" : "node",
+  supabaseConfigured: assertSupabaseEnv() === null,
   ts: new Date().toISOString(),
 })
 

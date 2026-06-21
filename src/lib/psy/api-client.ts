@@ -19,16 +19,31 @@ export class PsyApiError extends Error {
   }
 }
 
-export async function psyFetch<T>(
-  path: string,
-  init?: RequestInit
-): Promise<T> {
-  const { data } = await supabase.auth.getSession()
-  const jwt = data.session?.access_token
-  if (!jwt) {
-    throw new PsyApiError("Sem sessão autenticada", 401, null)
+/** Obtém access_token válido, com refresh se expirado ou perto de expirar. */
+async function getAccessToken(): Promise<string> {
+  const { data: sessionData } = await supabase.auth.getSession()
+  let session = sessionData.session
+
+  const expiresSoon =
+    session?.expires_at != null &&
+    session.expires_at * 1000 < Date.now() + 60_000
+
+  if (!session?.access_token || expiresSoon) {
+    const { data: refreshed, error } = await supabase.auth.refreshSession()
+    if (error || !refreshed.session?.access_token) {
+      throw new PsyApiError("Sem sessão autenticada", 401, null)
+    }
+    session = refreshed.session
   }
 
+  return session.access_token
+}
+
+async function psyFetchOnce<T>(
+  path: string,
+  jwt: string,
+  init?: RequestInit
+): Promise<{ ok: true; data: T } | { ok: false; status: number; body: unknown }> {
   const r = await fetch(`${API_BASE}/api/psy${path}`, {
     ...init,
     headers: {
@@ -38,12 +53,32 @@ export async function psyFetch<T>(
     },
   })
   const body = await r.json().catch(() => ({}))
-  if (!r.ok) {
+  if (!r.ok) return { ok: false, status: r.status, body }
+  return { ok: true, data: body as T }
+}
+
+export async function psyFetch<T>(
+  path: string,
+  init?: RequestInit
+): Promise<T> {
+  let jwt = await getAccessToken()
+  let result = await psyFetchOnce<T>(path, jwt, init)
+
+  // Retry uma vez após refresh se o backend rejeitar o token
+  if (!result.ok && result.status === 401) {
+    const { data: refreshed, error } = await supabase.auth.refreshSession()
+    if (!error && refreshed.session?.access_token) {
+      jwt = refreshed.session.access_token
+      result = await psyFetchOnce<T>(path, jwt, init)
+    }
+  }
+
+  if (!result.ok) {
     throw new PsyApiError(
-      (body as { error?: string })?.error ?? `HTTP ${r.status}`,
-      r.status,
-      body
+      (result.body as { error?: string })?.error ?? `HTTP ${result.status}`,
+      result.status,
+      result.body
     )
   }
-  return body as T
+  return result.data
 }
