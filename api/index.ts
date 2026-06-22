@@ -6,7 +6,9 @@
  * NÃO importa pdf.ts: o `isServerless` em app.ts faz com que a rota PDF
  * responda 501, mantendo puppeteer fora do bundle.
  */
-import { handle } from "hono/vercel"
+// Vercel Serverless usa Node (req, res). `hono/vercel` só devolve Fetch API e
+// nunca escreve em `res` → FUNCTION_INVOCATION_TIMEOUT. Usar o adapter Node.
+import { handle } from "@hono/node-server/vercel"
 import { app } from "./_src/app.js"
 
 // Sem `export const config = { runtime }`: Vercel @vercel/node 5+ deprecou
